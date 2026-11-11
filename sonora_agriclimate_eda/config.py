@@ -43,6 +43,16 @@ HIDRICO_SONORA_URL = (
     "hidrico_sonora_2020-actualidad2024.xlsx"
 )
 
+MARGINACION_1990_2015_URL = (
+    "https://coespo.sonora.gob.mx/documentos/Marginacion/Municipal/"
+    "Indice-de-Marginacion-municipal-1990-2015(Conapo).xlsx"
+)
+
+MARGINACION_2020_URL = (
+    "https://datos.sonora.gob.mx/dataset/%C3%8Dndice%20de%20marginaci%C3%B3n"
+    "%20por%20municipio/download_resource/046c2f52-72aa-4059-bf05-5ad52e191d1b"
+)
+
 REPDA_URL_QUERY = "https://sigagis.conagua.gob.mx/ArcGIS/rest/services/REPDA/MapServer/1/query"
 
 # --- Metadatos y Columnas ---

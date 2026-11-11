@@ -10,6 +10,8 @@ import urllib3
 import time
 import io
 from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from sonora_agriclimate_eda.config import (
     RAW_DATA_DIR,
     INTERIM_DATA_DIR,
@@ -17,6 +19,8 @@ from sonora_agriclimate_eda.config import (
     CONAGUA_BASE_URL,
     CONAGUA_DROUGHT_URL,
     HIDRICO_SONORA_URL,
+    MARGINACION_1990_2015_URL,
+    MARGINACION_2020_URL,
 )
 
 urllib3.disable_warnings(
@@ -272,6 +276,90 @@ def download_hidrico_data():
         logger.warning(f"Failed to download hidrico data: {e}")
 
 
+def _download_marginacion_file(
+    url: str,
+    dest_file: Path,
+    session: requests.Session,
+    overwrite: bool = False,
+) -> Path:
+    """Descarga un Excel a un archivo temporal y valida su firma antes de guardarlo."""
+    if dest_file.exists() and not overwrite:
+        logger.info(f"Ya existe, se omite: {dest_file.name}")
+        return dest_file
+
+    temporary_file = dest_file.with_suffix(f"{dest_file.suffix}.part")
+    try:
+        with session.get(url, stream=True, timeout=60) as response:
+            response.raise_for_status()
+            with temporary_file.open("wb") as file:
+                for chunk in response.iter_content(chunk_size=1024 * 256):
+                    if chunk:
+                        file.write(chunk)
+
+        with temporary_file.open("rb") as file:
+            signature = file.read(8)
+        is_excel = signature.startswith(b"PK") or signature.startswith(
+            b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
+        )
+        if not is_excel:
+            raise ValueError(
+                f"Lo descargado de {url} no parece un archivo Excel válido."
+            )
+
+        temporary_file.replace(dest_file)
+    finally:
+        temporary_file.unlink(missing_ok=True)
+
+    logger.success(
+        f"Descargado: {dest_file.name} ({dest_file.stat().st_size / 1024:.1f} KB)"
+    )
+    return dest_file
+
+
+@app.command()
+def download_marginacion_data(overwrite: bool = False):
+    """Descarga los índices municipales de marginación de 1990-2015 y 2020."""
+    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    session = requests.Session()
+    session.headers.update(
+        {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+            ),
+            "Accept": "*/*",
+        }
+    )
+    retries = Retry(
+        total=4,
+        backoff_factor=1.5,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=("GET",),
+    )
+    adapter = HTTPAdapter(max_retries=retries)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
+    try:
+        sources = (
+            (
+                "indice_marginacion_municipal_1990_2015.xlsx",
+                MARGINACION_1990_2015_URL,
+            ),
+            ("indice_marginacion_municipal_2020.xlsx", MARGINACION_2020_URL),
+        )
+        for filename, url in sources:
+            _download_marginacion_file(
+                url,
+                RAW_DATA_DIR / filename,
+                session,
+                overwrite=overwrite,
+            )
+    finally:
+        session.close()
+
+
 def download_siap_sonora(start_year: int, end_year: int):
     """
     Download SIAP data (Agricultural Year-End Report) for a range of years, filtering for the state of Sonora (IdEstado == 26).
@@ -372,23 +460,26 @@ def data_ingestion_pipeline(start_year: int = 2019, end_year: int = 2024):
     """Ejecuta la descarga de agricultura y el procesamiento de sequía en un solo paso."""
     logger.info("=== Iniciando pipeline completo de datos ===")
 
-    logger.info("Paso 1/6: Descargando datos de agricultura...")
+    logger.info("Paso 1/7: Descargando datos de agricultura...")
     download_agriculture_data(start_year, end_year)
 
-    logger.info("Paso 2/6: Descargando y preprocesando datos de sequía...")
+    logger.info("Paso 2/7: Descargando y preprocesando datos de sequía...")
     download_drought_data(start_year, end_year)
 
-    logger.info("Paso 3/6: Descargando datos de lluvia...")
+    logger.info("Paso 3/7: Descargando datos de lluvia...")
     download_rain_data(start_year, end_year)
 
-    logger.info("Paso 4/6: Descargando datos de temperatura media...")
+    logger.info("Paso 4/7: Descargando datos de temperatura media...")
     download_temperature_data(start_year, end_year)
 
-    logger.info("Paso 5/6: Descargando datos de recursos hídricos...")
+    logger.info("Paso 5/7: Descargando datos de recursos hídricos...")
     download_hidrico_data()
     
-    logger.info("Paso 6/6: Descargando datos de SIAP...")
+    logger.info("Paso 6/7: Descargando datos de SIAP...")
     download_siap_sonora(start_year, end_year)
+
+    logger.info("Paso 7/7: Descargando datos de marginación...")
+    download_marginacion_data()
 
     logger.success("¡Pipeline completo ejecutado con éxito!")
 

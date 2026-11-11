@@ -70,3 +70,14 @@ Este proyecto investiga cómo las crisis y el colapso ambiental (con un enfoque 
 
 --------
 
+## Descargar datos de marginación
+
+Para descargar los archivos municipales de 1990–2015 y 2020 en `data/raw/`:
+
+```bash
+python -m sonora_agriclimate_eda.dataset download-marginacion-data
+```
+
+Los archivos existentes se conservan. Para descargarlos de nuevo, usa
+`--overwrite`.
+La descarga también forma parte de `data_ingestion_pipeline`.
