@@ -21,7 +21,7 @@ Requiere **Python 3.13** (`ydata-profiling` no es compatible con 3.14).
    python -m sonora_health_climate_eda.dataset data-ingestion-pipeline
    ```
 
-   Esto descarga sequía (CONAGUA), lluvia y temperatura (SMN), y marginación
+   Esto descarga sequía (CONAGUA), temperatura (SMN) y marginación
    municipal (CONAPO). Las capas de calidad del aire y salud respiratoria
    están pendientes de confirmar fuente — ver los `TODO` en
    `sonora_health_climate_eda/config.py`.
@@ -30,10 +30,10 @@ Requiere **Python 3.13** (`ydata-profiling` no es compatible con 3.14).
 
    - `notebooks/00_auto_eda/` — auto-EDA con `ydata-profiling`
      (genera `reports/auto_eda_report.html`; requiere el panel integrado).
-   - `notebooks/01_ingesta/` → `notebooks/02_eda/` → `notebooks/03_modelado/`.
+   - `notebooks/01_ingesta/` → `notebooks/02_eda/`.
 
    El índice completo está en `notebooks/README.md`. Los notebooks de
    `02_eda/` incluyen templates del rúbrica (datos faltantes, outliers,
-   correlación, PCA/t-SNE) listos para llenar cuando exista el panel
+   relaciones, correlación, PCA/t-SNE) listos para llenar cuando exista el panel
    integrado. El template del reporte final está en
    `reports/reporte_final_template.md`.

@@ -1,7 +1,9 @@
 # Índice de notebooks — Sonora Health-Climate EDA
 
-> **TODO CRÍTICO del equipo:** tres de las cinco capas de datos del protocolo
-> están **pendientes** y bloquean el análisis integrado. Ver
+> **Estado:** el panel mensual integrado (ene-2015 a dic-2020, Hermosillo)
+> ya está generado en `data/processed/panel_hermosillo.parquet` con 4 de 5
+> capas. Pendientes: **calidad del aire** (fuente sin confirmar) y la
+> **geometría AGEB** (INEGI) para el nivel intra-urbano. Ver
 > `docs/docs/protocolo_eda.md` para el detalle metodológico.
 
 ## Auto-EDA (primer análisis rápido)
@@ -14,11 +16,11 @@
 
 | Capa | Notebook | Estado | Responsable |
 |------|----------|--------|-------------|
-| 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) | ⚠️ **TODO CRÍTICO** — ingesta pausada (AGEB + municipal); falta geometría AGEB y validación | Compañeros |
-| 2. Clima (temp/lluvia) | `01_ingesta/1.0-conagua-temperatura.ipynb`, `1.1-conagua-lluvia.ipynb` | ✅ Implementado | — |
+| 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) | ⚠️ Ingesta pausada, pero CSV municipales 2010/2015/2020 + IMU 2020 ya están en `data/interim/` (usados por el panel); falta geometría AGEB INEGI | Compañeros |
+| 2. Clima (temperatura) | `01_ingesta/1.0-conagua-temperatura.ipynb` | ✅ Implementado | — |
 | 3. Sequía | `01_ingesta/1.2-monitor-sequia.ipynb` | ✅ Implementado | — |
 | 4. Calidad del aire | `01_ingesta/1.4-calidad-aire.ipynb` | 🔴 **TODO CRÍTICO** — fuente sin confirmar (SINAICA / datos abiertos Sonora) | Compañeros |
-| 5. Salud respiratoria | `01_ingesta/1.5-enfermedades-respiratorias.ipynb` | 🔴 **TODO** — fuente identificada (Vigilancia Epidemiológica Sonora, semanal × municipio × CIE-10); falta implementar descarga | Compañeros |
+| 5. Salud respiratoria | `01_ingesta/1.5-enfermedades-respiratorias.ipynb` | ✅ Implementado — casos confirmados de IRA (Salud Sonora 2010–2020), semanal → mensual vía `panel.health_ira_monthly()` | — |
 
 ## Orden de ejecución sugerido
 
@@ -26,28 +28,40 @@
 | Notebook | Descripción | Estado |
 |----------|-------------|--------|
 | `1.0-conagua-temperatura.ipynb` | Descarga e ingesta de temperatura media por estación (SMN/CONAGUA) | ✅ |
-| `1.1-conagua-lluvia.ipynb` | Descarga e ingesta de precipitación por estación (SMN/CONAGUA) | ✅ |
 | `1.2-monitor-sequia.ipynb` | Monitor de Sequía CONAGUA → formato tidy por año | ✅ |
 | `1.3-indice-marginacion.ipynb` | Índice de marginación — **template TODO** | ⚠️ TODO |
 | `1.4-calidad-aire.ipynb` | PM2.5, PM10, O3 por estación — **esqueleto** | 🔴 TODO |
-| `1.5-enfermedades-respiratorias.ipynb` | IRAs, asma, EPOC, neumonías — **esqueleto** | 🔴 TODO |
+| `1.5-enfermedades-respiratorias.ipynb` | IRAs confirmadas (Salud Sonora) → mensual Hermosillo | ✅ |
 
-### `02_eda/` — Fases B y C
+### `02_eda/` — Integración y templates del rúbrica
 | Notebook | Descripción | Estado |
 |----------|-------------|--------|
-| `2.0-integracion-espacial.ipynb` | Panel integrado: claves INEGI, spatial joins AGEB↔estaciones | 🔴 Bloqueado por capas pendientes |
-| `2.1-univariado.ipynb` | Series temporales, estacionalidad, mapas coropléticos | 🔴 Bloqueado |
-| `2.2-bivariado-ccf.ipynb` | Pearson/Spearman + función de correlación cruzada (rezagos) | 🔴 Bloqueado |
-| `2.3-espacial-coropletico.ipynb` | Mapas marginación × morbilidad × exposición | 🔴 Bloqueado |
-| `2.4-datos-faltantes.ipynb` | % faltantes, missingno, patrones temporales, imputación | 📝 Template (rúbrica: datos faltantes) |
-| `2.5-outliers.ipynb` | Outliers con ≥2 técnicas: IQR/Z-score, Isolation Forest, LOF | 📝 Template (rúbrica: anomalías) |
-| `2.6-correlacion.ipynb` | Heatmaps Pearson/Spearman, correlación con variable objetivo | 📝 Template (rúbrica: correlación) |
-| `2.7-reduccion-dimensionalidad.ipynb` | PCA (scree, loadings) + t-SNE para visualización | 📝 Template (rúbrica: reducción de características) |
+| `2.0-integracion-espacial.ipynb` | Panel mensual integrado (`panel.build_panel()` → `panel_hermosillo.parquet`) | ✅ (nivel municipal; AGEB pendiente de geometría INEGI) |
+| `2.1-datos-faltantes.ipynb` | % faltantes, missingno, patrones temporales, imputación | 📝 Template (rúbrica: datos faltantes) |
+| `2.2-outliers.ipynb` | Outliers con ≥2 técnicas: IQR/Z-score, Isolation Forest, LOF | 📝 Template (rúbrica: anomalías) |
+| `2.3-relaciones-visualizacion.ipynb` | Series, scatter, pairplot y boxplots casos vs. exposición | 📝 Template (rúbrica: relaciones por visualización) |
+| `2.4-correlacion.ipynb` | Heatmaps Pearson/Spearman, correlación con variable objetivo | 📝 Template (rúbrica: correlación) |
+| `2.5-reduccion-dimensionalidad.ipynb` | PCA (scree, loadings) + t-SNE para visualización | 📝 Template (rúbrica: reducción de características) |
 
-### `03_modelado/` — Fase D
-| Notebook | Descripción | Estado |
-|----------|-------------|--------|
-| `3.0-glm-respiratorio.ipynb` | GLM Poisson/NB con rezagos e interacciones marginación×exposición | 🔴 Bloqueado |
+Cada notebook de `02_eda/` termina con una celda **Consulta con el equipo**
+(rúbrica: consulta con los usuarios):
+
+| Checkpoint | Notebooks | Qué se decide |
+|------------|-----------|---------------|
+| 1 — Calidad de datos | `2.1`, `2.2` | Qué variables/periodos se conservan, imputan o excluyen |
+| 2 — Hallazgos exploratorios | `2.3`, `2.4`, `2.5` | Qué relaciones se profundizan en el plan |
+| 3 — Interpretación | reporte final | Si los hallazgos responden las preguntas de investigación |
+
+### Plan (cuando estén todos los datos)
+
+No tienen notebook todavía; el detalle está en la sección 3 de
+`docs/docs/protocolo_eda.md`:
+
+- Análisis univariado (series, estacionalidad).
+- Rezagos exposición → casos: panel semanal por semana epidemiológica y
+  correlación cruzada (CCF).
+- Mapas por AGEB (marginación × morbilidad × exposición).
+- GLM Poisson/Binomial Negativo con rezagos e interacciones.
 
 ## Cómo retomar una capa pendiente
 
