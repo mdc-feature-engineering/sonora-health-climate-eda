@@ -152,10 +152,34 @@ AIR_QUALITY_POLLUTANTS = ["PM2.5", "PM10", "O3"]
 # municipales). Si no, el análisis espacial usará jurisdicción sanitaria y el
 # temporal será anual o sub-anual.
 HEALTH_DATA_SOURCES = {
-    "sinave": None,  # Pendiente: URL de datos abiertos SINAVE
-    "ssa_sonora": None,  # Pendiente: portal de datos abiertos estatal
+    # Portal de Datos Abiertos del Gobierno del Estado de Sonora (CKAN).
+    # Dataset "Vigilancia Epidemiológica" (SUIVE): semanal × jurisdicción ×
+    # municipio × diagnóstico CIE-10 × edad/sexo. Verificado 2026-11 (año 2022).
+    # Pendiente: confirmar si publican años adicionales bajo el mismo dataset.
+    "vigilancia_epidemiologica_sonora": {
+        "dataset_id": "dca16d84-dbf0-4501-b702-dc6372a480ea",
+        "resource_id": "1689b19c-b0dc-4e39-bf07-e3a2e684ef1a",
+        "year": 2022,
+        "url": (
+            "https://datos.sonora.gob.mx/dataset/"
+            "dca16d84-dbf0-4501-b702-dc6372a480ea/resource/"
+            "1689b19c-b0dc-4e39-bf07-e3a2e684ef1a/download/"
+            "202209281339190-file.xlsx"
+        ),
+    },
+    "sinave": None,  # Respaldo: morbilidad anual por jurisdicción sanitaria
+    "ssa_sonora": None,
 }
-HEALTH_OUTCOMES = ["IRA", "asma", "EPOC", "neumonia"]
+
+# Diagnósticos respiratorios de interés (cve_diagno del SUIVE) — protocolo EDA.
+RESPIRATORY_DIAGNOSIS_IDS = {
+    "16": "Infecciones respiratorias agudas (IRA)",
+    "17": "Neumonías y bronconeumonías",
+    "185": "Enfermedad pulmonar obstructiva crónica (EPOC)",
+    "54": "Asma",
+    "90": "Influenza",
+    "19": "Tuberculosis respiratoria",
+}
 
 # ---------------------------------------------------------------------------
 # Metadatos y columnas auxiliares

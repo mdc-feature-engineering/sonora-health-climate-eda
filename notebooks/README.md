@@ -12,7 +12,7 @@
 | 2. Clima (temp/lluvia) | `01_ingesta/1.0-conagua-temperatura.ipynb`, `1.1-conagua-lluvia.ipynb` | ✅ Implementado | — |
 | 3. Sequía | `01_ingesta/1.2-monitor-sequia.ipynb` | ✅ Implementado | — |
 | 4. Calidad del aire | `01_ingesta/1.4-calidad-aire.ipynb` | 🔴 **TODO CRÍTICO** — fuente sin confirmar (SINAICA / datos abiertos Sonora) | Compañeros |
-| 5. Salud respiratoria | `01_ingesta/1.5-enfermedades-respiratorias.ipynb` | 🔴 **TODO CRÍTICO** — fuente y granularidad sin confirmar (SINAVE / SSA) | Compañeros |
+| 5. Salud respiratoria | `01_ingesta/1.5-enfermedades-respiratorias.ipynb` | 🔴 **TODO** — fuente identificada (Vigilancia Epidemiológica Sonora, semanal × municipio × CIE-10); falta implementar descarga | Compañeros |
 
 ## Orden de ejecución sugerido
 

@@ -2,11 +2,13 @@
 
 > Análisis exploratorio y modelado espacio-temporal de la vulnerabilidad socioeconómica y climática ante enfermedades respiratorias en Hermosillo, Sonora.
 
-## Pregunta de investigación
+## Preguntas de investigación
 
-¿De qué manera la población **marginalizada en Hermosillo** presenta una mayor **exposición y vulnerabilidad** a enfermedades asociadas al **calor extremo y la sequía**, mediada por la **calidad del aire** y los **efectos de rezago temporal**?
+**General:** ¿Cómo inciden el calor extremo, la sequía y la contaminación del aire en la incidencia de enfermedades respiratorias en Hermosillo?
 
-El protocolo metodológico completo está en [`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md).
+**Específica:** ¿Las zonas más marginadas de Hermosillo son las más afectadas por las enfermedades respiratorias durante olas de calor y sequía?
+
+Objetivo del EDA: explorar la relación exposición–morbilidad para definir alcances del producto de datos final (alerta climática → modelo predictivo por AGEB → planeación en salud pública). Detalle en [`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md).
 
 ## Capas de datos
 
@@ -16,9 +18,12 @@ El protocolo metodológico completo está en [`docs/docs/protocolo_eda.md`](docs
 | 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) | Disponible |
 | 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA | Disponible |
 | 4 | Calidad del aire (PM2.5, PM10, O3) | SINAICA / datos abiertos Sonora | Pendiente de fuente |
-| 5 | Enfermedades respiratorias | SINAVE / SSA | Pendiente de fuente y granularidad |
+| 5 | Enfermedades respiratorias | Vigilancia Epidemiológica Sonora (SUIVE, datos abiertos) — semanal × municipio × diagnóstico CIE-10 | Fuente identificada, implementación pendiente |
 
-> Las capas 4 y 5 tienen comandos stub en `dataset.py` y notebooks esqueleto en `notebooks/01_ingesta/`. Ver los `TODO` en `sonora_health_climate_eda/config.py`.
+> Las capas 4 y 5 tienen notebooks esqueleto en `notebooks/01_ingesta/`. La
+> fuente de salud ya está configurada en `sonora_health_climate_eda/config.py`
+> (`HEALTH_DATA_SOURCES`); falta implementar el comando de descarga.
+> Ver los `TODO` en `config.py`.
 
 ## Project Organization
 
@@ -35,13 +40,14 @@ El protocolo metodológico completo está en [`docs/docs/protocolo_eda.md`](docs
 ├── docs                  <- Documentación mkdocs + protocolo_eda.md
 ├── models                <- Modelos entrenados y resultados
 ├── notebooks
-│   ├── 01_ingesta        <- Descarga/limpieza de las capas (aire y salud pendientes)
+│   ├── 01_ingesta        <- Descarga/limpieza de las capas (aire pendiente; salud por implementar)
 │   ├── 02_eda            <- Fases B y C: univariado, bivariado/CCF, espacial
 │   └── 03_modelado       <- Fase D: GLM Poisson/NB con rezagos e interacciones
 │
 ├── pyproject.toml
 ├── references            <- Diccionarios de datos por fuente
 │   ├── clima/            <- CONAGUA (temperatura, lluvia, sequía)
+│   ├── marginacion/      <- (pendiente: AGEB y municipal)
 │   ├── aire/             <- (pendiente)
 │   └── salud/            <- (pendiente)
 ├── reports
@@ -78,6 +84,8 @@ python -m sonora_health_climate_eda.dataset data-ingestion-pipeline
 
 # Individuales
 python -m sonora_health_climate_eda.dataset download-marginacion-data
+python -m sonora_health_climate_eda.dataset download-marginacion-ageb-data
+python -m sonora_health_climate_eda.dataset download-marginacion-municipal-csvs
 python -m sonora_health_climate_eda.dataset download-drought-data
 python -m sonora_health_climate_eda.dataset download-temperature-data
 python -m sonora_health_climate_eda.dataset download-rain-data

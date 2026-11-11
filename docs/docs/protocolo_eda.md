@@ -5,8 +5,32 @@
 
 ---
 
-## 1. Pregunta de Investigación
-¿De qué manera la población marginalizada en Hermosillo presenta una mayor exposición y vulnerabilidad a enfermedades asociadas al calor extremo y la sequía, mediada por la calidad del aire y los efectos de rezago temporal?
+## 1. Preguntas de Investigación
+
+**Pregunta general:**
+
+> ¿Cómo inciden el calor extremo, la sequía y la contaminación del aire en la incidencia de enfermedades respiratorias en Hermosillo?
+
+**Pregunta específica (hipótesis de vulnerabilidad diferencial):**
+
+> ¿Las zonas más marginadas de Hermosillo son las más afectadas por las enfermedades respiratorias durante olas de calor y sequía?
+
+*(Versión original de trabajo: "¿De qué manera la población marginalizada en
+Hermosillo presenta una mayor exposición y vulnerabilidad a enfermedades
+asociadas al calor extremo y la sequía, mediada por la calidad del aire y los
+efectos de rezago temporal?")*
+
+## 1.1 Objetivo del proyecto (EDA)
+
+Explorar a profundidad la relación entre la exposición ambiental (calor
+extremo, sequía y contaminación del aire) y la morbilidad respiratoria en
+Hermosillo, para definir los alcances posibles del producto de datos final:
+
+- **Corto plazo:** sistema de alerta por condiciones climáticas y de aire.
+- **Mediano plazo:** modelo predictivo de incidencia por AGEB que incorpore
+  la vulnerabilidad socioeconómica (marginación).
+- **Largo plazo:** herramienta de planeación en salud pública dirigida a
+  zonas de alta marginación.
 
 ---
 
