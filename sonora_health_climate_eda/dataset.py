@@ -2,13 +2,12 @@
 
 Capas (ver ``docs/docs/protocolo_eda.md``):
     1. Marginación (CONAPO/INEGI) — municipal implementado; AGEB pendiente.
-    2. Clima (CONAGUA/SMN) — temperatura y lluvia mensuales por estación.
+    2. Clima (CONAGUA/SMN) — temperatura mensual por estación.
     3. Sequía (Monitor de Sequía SMN/CONAGUA).
     4. Calidad del aire — stub pendiente de confirmar fuente.
     5. Salud respiratoria — stub pendiente de confirmar fuente.
 """
 
-import os
 import time
 
 from loguru import logger
@@ -34,7 +33,7 @@ app = typer.Typer()
 
 
 @app.command()
-def download_drought_data(start_year: int = 2019, end_year: int = 2024):
+def download_drought_data(start_year: int = 2015, end_year: int = 2021):
     """Procesa el archivo crudo de sequía de CONAGUA y genera un archivo Tidy por cada año."""
     raw_path = RAW_DATA_DIR / "MunicipiosSequia.xlsx"
     output_dir = INTERIM_DATA_DIR / "sonora_sequia"
@@ -110,63 +109,8 @@ def download_drought_data(start_year: int = 2019, end_year: int = 2024):
     logger.success("¡Proceso de sequía por año completado exitosamente!")
 
 
-def download_rain_data(start_year: int = 2019, end_year: int = 2024):
-    urllib3.disable_warnings(
-        urllib3.exceptions.InsecureRequestWarning
-    )  # Desactivar avisos de certificados SSL no verificados.
-
-    # Definicion de la URL de la base de datos de lluvia del SMN (Servicio Meteorológico Nacional) de CONAGUA.
-    # Ruta para guardar en data/raw/ subiendo un nivel desde la carpeta notebooks/
-    # Usamos '..' para salir de notebooks/ hacia la raíz del proyecto
-
-    main_folder = RAW_DATA_DIR
-    os.makedirs(main_folder, exist_ok=True)
-
-    # Cabecera HTTP estándar para simular una petición de navegador.
-    headers = {"User-Agent": "Mozilla/5.0"}
-
-    # Bucle for para recorrer cada año en el rango definido y descargar los archivos de lluvia correspondientes a cada mes.
-    for current_year in range(start_year, end_year):
-        year_str = str(current_year)
-        logger.info(f"--- Descarga del año: {year_str} ---")
-        # Creamos una subcarpeta para cada año (ej. ../data/raw/datos_lluvia_2019_2023/lluvia_2019)
-        year_folder = os.path.join(main_folder, "lluvia_" + year_str)
-        os.makedirs(year_folder, exist_ok=True)
-
-        # Recorremos los meses del 1 al 12 (enero a diciembre)
-        for month in range(1, 13):
-            mes_str = str(month).zfill(2)
-            file_name = (
-                year_str + mes_str + "010000Lluv.csv"
-            )  # Formato: [AÑO] + [MES] + 010000Lluv.csv
-            file_url = (
-                CONAGUA_BASE_URL + "/" + file_name
-            )  # Url completa del archivo en el servidor
-            local_path = os.path.join(year_folder, file_name)  # Ruta local final del archivo
-
-            try:
-                res = requests.get(
-                    file_url, headers=headers, verify=False
-                )  # Peticion GET al servidor
-
-                if res.status_code == 200:
-                    with open(local_path, "wb") as f:
-                        f.write(res.content)
-                    logger.success(f"Año {year_str} | Mes {mes_str}: Descargado con éxito")
-                else:
-                    # Si el mes no está disponible en el servidor (ej. código 404)
-                    logger.warning(
-                        f"Año {year_str} | Mes {mes_str}: No disponible (Status {res.status_code})"
-                    )
-            except (requests.RequestException, OSError) as e:
-                # Por si se interrumpe la conexión a internet
-                logger.error("Error al descargar %s: %s", file_name, e)
-
-    logger.success("Descargas de lluvia completadas.")
-
-
 @app.command()
-def download_temperature_data(start_year: int = 2019, end_year: int = 2024):
+def download_temperature_data(start_year: int = 2015, end_year: int = 2021):
     """Descarga los archivos mensuales de temperatura media (TMed) directamente en data/raw/."""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -218,6 +162,57 @@ def download_temperature_data(start_year: int = 2019, end_year: int = 2024):
                 logger.error(f"Error al descargar {file_name}: {e}")
 
     logger.success("Descargas de temperatura media completadas.")
+
+
+@app.command()
+def download_temperature_extremes_data(start_year: int = 2015, end_year: int = 2021):
+    """Descarga los resúmenes mensuales de temperatura máxima (TMax) y
+    mínima (TMin) del SMN — proxy de calor extremo / ola de calor.
+
+    Misma estructura que ``download_temperature_data``: un CSV por mes con
+    todas las estaciones del país. Se guardan en
+    ``data/raw/temperatura_max_YYYY/`` y ``data/raw/temperatura_min_YYYY/``.
+    """
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    headers = {
+        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"),
+        "Referer": CONAGUA_TEMPERATURE_REFERER,
+    }
+
+    for series, suffix, col_name in (
+        ("TMax", "temperatura_max", "Tmax"),
+        ("TMin", "temperatura_min", "Tmin"),
+    ):
+        for current_year in range(start_year, end_year):
+            year_str = str(current_year)
+            logger.info(f"--- {series} del año: {year_str} ---")
+            year_folder = RAW_DATA_DIR / f"{suffix}_{year_str}"
+            year_folder.mkdir(parents=True, exist_ok=True)
+
+            for month in range(1, 13):
+                mes_str = str(month).zfill(2)
+                file_name = f"{year_str}{mes_str}010000{series}.csv"
+                file_url = f"{CONAGUA_BASE_URL.rstrip('/')}/{file_name}"
+                local_path = year_folder / file_name
+
+                if local_path.exists() and local_path.stat().st_size > 0:
+                    continue
+
+                try:
+                    res = requests.get(file_url, headers=headers, verify=False, timeout=20)
+                    if res.status_code == 200:
+                        local_path.write_bytes(res.content)
+                        logger.success(f"{series} {year_str}-{mes_str}: OK")
+                    else:
+                        logger.warning(
+                            f"{series} {year_str}-{mes_str}: no disponible (Status {res.status_code})"
+                        )
+                    time.sleep(0.5)
+                except (requests.RequestException, OSError) as e:
+                    logger.error(f"Error al descargar {file_name}: {e}")
+
+    logger.success("Descargas de temperatura máxima/mínima completadas.")
 
 
 @app.command()
@@ -294,17 +289,14 @@ def download_respiratory_health_data():
 
 
 @app.command()
-def data_ingestion_pipeline(start_year: int = 2019, end_year: int = 2024):
+def data_ingestion_pipeline(start_year: int = 2015, end_year: int = 2021):
     """Ejecuta la descarga de las capas disponibles en un solo paso."""
     logger.info("=== Iniciando pipeline de ingesta de datos ===")
 
     logger.info("Paso 1/5: Descargando y preprocesando datos de sequía...")
     download_drought_data(start_year, end_year)
 
-    logger.info("Paso 2/5: Descargando datos de lluvia...")
-    download_rain_data(start_year, end_year)
-
-    logger.info("Paso 3/5: Descargando datos de temperatura media...")
+    logger.info("Paso 2/5: Descargando datos de temperatura media...")
     download_temperature_data(start_year, end_year)
 
     logger.info("Capas pendientes (marginación, aire, salud)...")

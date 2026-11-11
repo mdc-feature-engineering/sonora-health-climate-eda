@@ -116,58 +116,6 @@ class TemperaturaEstacionSchema(BaseModel):
         return value
 
 
-# -------------------------------------------------------------------------
-# Esquema para Precipitación (Lluvia) CONAGUA
-# -------------------------------------------------------------------------
-class LluviaEstacionSchema(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    lon: float | None = Field(default=None, ge=-180.0, le=180.0)
-    lat: float | None = Field(default=None, ge=-90.0, le=90.0)
-    clave: str | None = None
-    edo: str | None = None
-    estacion: str | None = None
-    precipitacion_mm: float | None = Field(default=None, ge=0.0, le=3000.0)
-    periodo: str | None = None
-    archivo_origen: str | None = None
-    anio: int | None = Field(default=None, ge=1900, le=2100)
-    mes: int | None = Field(default=None, ge=1, le=12)
-    fecha: date | None = None
-
-    @field_validator("*", mode="before")
-    @classmethod
-    def normalize_missing_and_sentinels(cls, value):
-        if value is None or pd.isna(value):
-            return None
-        if str(value).strip().lower() in ["", "nan", "none", "null"]:
-            return None
-        try:
-            val_num = float(value)
-            if val_num in [-99.9, -999.0, -99.0]:
-                return None
-        except (ValueError, TypeError):
-            pass
-        return value
-
-    @field_validator("clave", "edo", "estacion", "periodo", "archivo_origen", mode="before")
-    @classmethod
-    def clean_text_fields(cls, value):
-        if value is None or pd.isna(value):
-            return None
-        return str(value).strip()
-
-    @field_validator("fecha", mode="before")
-    @classmethod
-    def parse_dates(cls, value):
-        if value is None or pd.isna(value):
-            return None
-        if isinstance(value, (pd.Timestamp, datetime)):
-            return value.date()
-        if isinstance(value, str):
-            return datetime.strptime(value.strip()[:10], "%Y-%m-%d").date()
-        return value
-
-
 class MarginacionAgebSchema(DatasetSchema):
     """Schema for the CONAPO urban marginalization index at AGEB level (IMU 2020)."""
 
@@ -254,7 +202,6 @@ class MarginacionAgebSchema(DatasetSchema):
 
 __all__ = [
     "DatasetSchema",
-    "LluviaEstacionSchema",
     "MarginacionAgebSchema",
     "SequiaSonoraSchema",
     "TemperaturaEstacionSchema",

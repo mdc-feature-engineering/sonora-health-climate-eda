@@ -60,38 +60,37 @@ _Figura X — _[Descripción: qué muestra, ejes, unidades, fuente de datos]._
 ### 5.2 Datos faltantes y calidad
 
 - _[Principales huecos encontrados (variables, periodos, estaciones) y
-  estrategia de tratamiento aplicada. Referir a `2.4-datos-faltantes.ipynb`.]_
+  estrategia de tratamiento aplicada. Referir a `2.1-datos-faltantes.ipynb`.]_
 
 ### 5.3 Anomalías (outliers)
 
 - _[Resumen de outliers detectados con las técnicas aplicadas (IQR/Z-score,
   Isolation Forest, LOF), cuáles se interpretaron como eventos reales
   (olas de calor, picos de contaminación, brotes) y cuáles como errores.
-  Referir a `2.5-outliers.ipynb`.]_
+  Referir a `2.2-outliers.ipynb`.]_
 
 ### 5.4 Relaciones entre variables
 
 - _[Principales relaciones observadas en las visualizaciones: temperatura–
   morbilidad, PM2.5/PM10–morbilidad, marginación–exposición. Referir a
-  `2.6-correlacion.ipynb` y `2.2-bivariado-ccf.ipynb`.]_
+  `2.3-relaciones-visualizacion.ipynb`.]_
 
-### 5.5 Correlación y rezagos
+### 5.5 Correlación
 
 - _[Correlaciones más fuertes (Pearson/Spearman) con la variable de
-  respuesta, significancia, y rezago óptimo estimado por la función de
-  correlación cruzada. Referir a `2.2-bivariado-ccf.ipynb`.]_
+  respuesta y significancia. Referir a `2.4-correlacion.ipynb`.]_
 
 ### 5.6 Estructura multivariada (PCA / t-SNE)
 
 - _[Clusters o gradientes encontrados en el espacio reducido: ¿se agrupan
   AGEBs por marginación, estaciones del año o intensidad de exposición?
   Varianza explicada por componentes PCA. Referir a
-  `2.7-reduccion-dimensionalidad.ipynb`.]_
+  `2.5-reduccion-dimensionalidad.ipynb`.]_
 
 ### 5.7 Distribución espacial
 
 - _[Patrones espaciales en Hermosillo: marginación × morbilidad × exposición.
-  Referir a `2.3-espacial-coropletico.ipynb` y `2.0-integracion-espacial.ipynb`.]_
+  Referir a `2.0-integracion-espacial.ipynb` (mapas por AGEB: plan).]_
 
 ### 5.8 Conclusiones y trabajo futuro
 
@@ -118,7 +117,7 @@ _Figura X — _[Descripción: qué muestra, ejes, unidades, fuente de datos]._
 
 - **Repositorio:** _[URL del GitHub del proyecto]_
 - **Libretas:** `notebooks/00_auto_eda/` (auto-EDA), `01_ingesta/` (ETL),
-  `02_eda/` (análisis), `03_modelado/` (GLM).
+  `02_eda/` (integración y análisis).
 - **Reporte automático:** `reports/auto_eda_report.html`.
 - **Datos:** `data/raw/` (crudos), `data/interim/` (intermedios),
   `data/processed/` (panel integrado).

@@ -14,16 +14,25 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 
 | # | Capa | Fuente | Estado |
 |---|------|--------|--------|
-| 1 | Índice de marginación | CONAPO / INEGI (AGEB 2020 + municipal 1990–2015/2020) | Pausado (template) |
-| 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) | Disponible |
-| 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA | Disponible |
+| 1 | Índice de marginación | CONAPO / INEGI (municipal 2010/2015/2020 en `data/interim/`; AGEB IMU 2020 disponible sin geometría) | Datos en interim; ingesta pausada (stubs) |
+| 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) | Disponible — descarga 2015–2020 |
+| 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA (quincenal → mensual) | Disponible — 2015–2020 |
 | 4 | Calidad del aire (PM2.5, PM10, O3) | SINAICA / datos abiertos Sonora | Pendiente de fuente |
-| 5 | Enfermedades respiratorias | Vigilancia Epidemiológica Sonora (SUIVE, datos abiertos) — semanal × municipio × diagnóstico CIE-10 | Fuente identificada, implementación pendiente |
+| 5 | Enfermedades respiratorias | Salud Sonora/SUIVE — casos confirmados de IRA, semanal × municipio × sexo × edad, 2010–2020 (`data/raw/salud/`) | Disponible — agregado a mensual |
 
-> Las capas 4 y 5 tienen notebooks esqueleto en `notebooks/01_ingesta/`. La
-> fuente de salud ya está configurada en `sonora_health_climate_eda/config.py`
-> (`HEALTH_DATA_SOURCES`); falta implementar el comando de descarga.
-> Ver los `TODO` en `config.py`.
+### Panel integrado
+
+`data/processed/panel_hermosillo.parquet`: Hermosillo, mensual, 2015–2020 (72 meses × 40 columnas).
+
+- **Clima:** datos diarios de Open-Meteo agregados por mes (olas de calor ≥35 °C y p95, humedad relativa).
+- **Flags:** `mes_ola_calor_p95`, `mes_sequia`, `mes_ola_calor_p95_y_sequia`.
+- **Salud:** un mes suma 4 o 5 semanas (`n_semanas`); `casos_ira_por_semana` permite comparar meses.
+- **Cómo se genera:** `panel.build_panel()`; ver [`2.0-integracion-espacial.ipynb`](notebooks/02_eda/2.0-integracion-espacial.ipynb). Los años se ajustan en `config.py`.
+- **Calidad del aire:** pendiente de fuente.
+
+### Alcance actual y próximos pasos
+
+Por ahora el proyecto cubre la **ingesta** de las capas y el panel integrado, más los templates de datos faltantes, outliers, relaciones por visualización, correlación y PCA/t-SNE. El análisis univariado, los rezagos (panel semanal), el GLM y los mapas por AGEB quedan como **plan** hasta tener todos los datos; ver la sección 3 de [`protocolo_eda.md`](docs/docs/protocolo_eda.md).
 
 ## Project Organization
 
@@ -34,23 +43,22 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 ├── data
 │   ├── external          <- Datos de terceros
 │   ├── interim           <- Datos intermedios transformados
-│   ├── processed         <- Datasets finales para modelado
+│   ├── processed         <- Panel integrado
 │   └── raw               <- Datos crudos inmutables
 │
 ├── docs                  <- Documentación mkdocs + protocolo_eda.md
 ├── models                <- Modelos entrenados y resultados
 ├── notebooks
 │   ├── 00_auto_eda      <- Auto-EDA con ydata-profiling (reporte HTML)
-│   ├── 01_ingesta        <- Descarga/limpieza de las capas (aire pendiente; salud por implementar)
-│   ├── 02_eda            <- Fases B y C: univariado, bivariado/CCF, espacial + templates del rúbrica (faltantes, outliers, correlación, PCA/t-SNE)
-│   └── 03_modelado       <- Fase D: GLM Poisson/NB con rezagos e interacciones
+│   ├── 01_ingesta        <- Descarga/limpieza de las capas (aire pendiente; salud y panel implementados)
+│   └── 02_eda            <- 2.0 panel integrado ✅; templates del rúbrica (faltantes, outliers, relaciones, correlación, PCA/t-SNE)
 │
 ├── pyproject.toml
 ├── references            <- Diccionarios de datos por fuente
-│   ├── clima/            <- CONAGUA (temperatura, lluvia, sequía)
-│   ├── marginacion/      <- (pendiente: AGEB y municipal)
+│   ├── clima/            <- CONAGUA (temperatura, sequía)
+│   ├── marginacion/      <- (pendiente)
 │   ├── aire/             <- (pendiente)
-│   └── salud/            <- (pendiente)
+│   └── salud/            <- Diccionario de casos confirmados de IRA (Salud Sonora)
 ├── reports
 │   ├── figures           <- Gráficos generados
 │   ├── auto_eda_report.html  <- Reporte auto-EDA (ydata-profiling, una vez ejecutado)
@@ -59,11 +67,10 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 └── sonora_health_climate_eda   <- Paquete Python del proyecto
     ├── config.py         <- Rutas, URLs de fuentes, constantes del protocolo
     ├── dataset.py        <- Comandos typer de descarga/ingesta
+    ├── panel.py          <- Panel mensual integrado (clima+sequía+marginación+salud)
     ├── schemas.py        <- Esquemas pydantic de los datasets
     ├── utils.py          <- Generación de diccionarios de datos
-    ├── lags.py           <- Rezagos temporales y función de correlación cruzada
     ├── spatial.py        <- Spatial joins AGEB ↔ estaciones, filtros INEGI
-    ├── glms.py           <- GLM Poisson/NB con interacciones
     ├── features.py       <- Ingeniería de características
     ├── plots.py          <- Visualizaciones
     └── modeling/         <- Entrenamiento/predicción (stub)
@@ -95,7 +102,6 @@ python -m sonora_health_climate_eda.dataset data-ingestion-pipeline
 # Individuales (solo capas activas: clima y sequía)
 python -m sonora_health_climate_eda.dataset download-drought-data
 python -m sonora_health_climate_eda.dataset download-temperature-data
-python -m sonora_health_climate_eda.dataset download-rain-data
 ```
 
 O desde el Makefile:
@@ -113,7 +119,7 @@ jupyter notebook notebooks/00_auto_eda/0.0-auto-eda.ipynb
 ```
 
 El índice completo de libretas (incluyendo los templates del rúbrica:
-datos faltantes, outliers, correlación, PCA/t-SNE) está en
+datos faltantes, outliers, relaciones, correlación y PCA/t-SNE) está en
 [`notebooks/README.md`](notebooks/README.md). El template del reporte final
 está en [`reports/reporte_final_template.md`](reports/reporte_final_template.md).
 
