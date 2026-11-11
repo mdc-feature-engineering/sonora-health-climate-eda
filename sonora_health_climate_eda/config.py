@@ -106,7 +106,26 @@ CONAGUA_TEMPERATURE_REFERER = (
 # producto de reanálisis (ERA5-Land vía CDS/CDSAPI o Open-Meteo archive).
 # Definir aquí el identificador de estación(es) de referencia una vez elegida
 # la fuente: p.ej. estación CONAGUA más cercana al centro de Hermosillo.
-CLIMATE_STATION_IDS = []  # Pendiente
+CLIMATE_STATION_IDS = ["HM2SO", "HMNSO", "MMHO"]  # Estaciones SMN en Hermosillo
+
+# Ventana del panel integrado mensual (ene-2015 a dic-2020 por defecto;
+# parametrizado para permitir extensión a 2010–2020).
+PANEL_START_YEAR = 2015
+PANEL_END_YEAR = 2020
+
+# Umbrales de exposición extrema para el análisis calor/sequía → IRA.
+# Ojo: son promedios MENSUALES por estación, no olas de calor diarias
+# (la nomenclatura oficial de ola de calor requiere Tmax diaria ≥35 °C
+# por ≥3 días — no disponible en resúmenes mensuales SMN).
+HEAT_EXTREME_TMAX_C = 38.0  # Tmax media mensual (°C) en Hermosillo
+DROUGHT_EXTREME_MIN_SEVERITY = 2.0  # severidad_sequia mensual >= D1 (moderada)
+HEAT_INDEX_DANGER_C = 40.0  # heat index (sensación térmica) >= 40 °C
+
+# Años con reporte de salud atípico: 2020 colapsó ~70% en casos_ira por la
+# disrupción COVID-19 en la notificación epidemiológica. El clima/sequía
+# de esos meses sigue siendo válido — el flag solo marca la anomalía para
+# excluir o tratar con una variable indicadora (no usar como exposición).
+HEALTH_ANOMALY_YEARS = {2020}
 
 # ---------------------------------------------------------------------------
 # Capa 3 — Monitor de Sequía (SMN/CONAGUA)
@@ -168,6 +187,15 @@ HEALTH_DATA_SOURCES = {
     },
     "sinave": None,  # Respaldo: morbilidad anual por jurisdicción sanitaria
     "ssa_sonora": None,
+    # CSVs locales recibidos de la Secretaría de Salud de Sonora
+    # (casos confirmados de IRA, 2010–2020, semanal × municipio × sexo ×
+    # grupo de edad). Ver references/salud/data_dictionary_enf_resp_sonora.md.
+    "salud_sonora_local": {
+        "sonora": "data/raw/salud/enf_resp_sonora_2010_2020.csv",
+        "hmo": "data/raw/salud/enf_resp_hmo_2010_2020.csv",
+        "coverage": "2010-2020",
+        "diagnostico": "IRA (J00-J06, J20, J21 excepto J02.0 y J03.0)",
+    },
 }
 
 # Diagnósticos respiratorios de interés (cve_diagno del SUIVE) — protocolo EDA.
