@@ -14,7 +14,7 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 
 | # | Capa | Fuente | Estado |
 |---|------|--------|--------|
-| 1 | Índice de marginación | CONAPO / INEGI (AGEB 2020 + municipal 1990–2015/2020) | Disponible |
+| 1 | Índice de marginación | CONAPO / INEGI (AGEB 2020 + municipal 1990–2015/2020) | Pausado (template) |
 | 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) | Disponible |
 | 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA | Disponible |
 | 4 | Calidad del aire (PM2.5, PM10, O3) | SINAICA / datos abiertos Sonora | Pendiente de fuente |
@@ -82,10 +82,7 @@ pip install -e .   # opcional, para usar el paquete sin sys.path
 # Pipeline completo de capas disponibles
 python -m sonora_health_climate_eda.dataset data-ingestion-pipeline
 
-# Individuales
-python -m sonora_health_climate_eda.dataset download-marginacion-data
-python -m sonora_health_climate_eda.dataset download-marginacion-ageb-data
-python -m sonora_health_climate_eda.dataset download-marginacion-municipal-csvs
+# Individuales (solo capas activas: clima y sequía)
 python -m sonora_health_climate_eda.dataset download-drought-data
 python -m sonora_health_climate_eda.dataset download-temperature-data
 python -m sonora_health_climate_eda.dataset download-rain-data

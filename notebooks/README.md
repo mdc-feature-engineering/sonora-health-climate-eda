@@ -8,7 +8,7 @@
 
 | Capa | Notebook | Estado | Responsable |
 |------|----------|--------|-------------|
-| 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) | ⚠️ **TODO CRÍTICO** — descarga implementada; falta geometría AGEB y validación | Compañeros |
+| 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) | ⚠️ **TODO CRÍTICO** — ingesta pausada (AGEB + municipal); falta geometría AGEB y validación | Compañeros |
 | 2. Clima (temp/lluvia) | `01_ingesta/1.0-conagua-temperatura.ipynb`, `1.1-conagua-lluvia.ipynb` | ✅ Implementado | — |
 | 3. Sequía | `01_ingesta/1.2-monitor-sequia.ipynb` | ✅ Implementado | — |
 | 4. Calidad del aire | `01_ingesta/1.4-calidad-aire.ipynb` | 🔴 **TODO CRÍTICO** — fuente sin confirmar (SINAICA / datos abiertos Sonora) | Compañeros |

@@ -17,9 +17,7 @@ import pandas as pd
 import requests
 import typer
 from loguru import logger
-from requests.adapters import HTTPAdapter
 from tqdm import tqdm
-from urllib3.util.retry import Retry
 
 from sonora_health_climate_eda.config import (
     CONAGUA_BASE_URL,
@@ -27,13 +25,7 @@ from sonora_health_climate_eda.config import (
     CONAGUA_TEMPERATURE_REFERER,
     DROUGHT_SEVERITY_MAP,
     INTERIM_DATA_DIR,
-    MARGINACION_1990_2015_URL,
-    MARGINACION_2020_URL,
-    MARGINACION_AGEB_URL,
-    MARGINACION_AGEB_YEAR,
-    MARGINACION_MUNICIPAL_CSV_URLS,
     RAW_DATA_DIR,
-    TARGET_MUNICIPIOS,
 )
 
 urllib3.disable_warnings(
@@ -244,213 +236,50 @@ def download_temperature_data(start_year: int = 2019, end_year: int = 2024):
     logger.success("Descargas de temperatura media completadas.")
 
 
-def _download_marginacion_file(
-    url: str,
-    dest_file: Path,
-    session: requests.Session,
-    overwrite: bool = False,
-) -> Path:
-    """Descarga un Excel a un archivo temporal y valida su firma antes de guardarlo."""
-    if dest_file.exists() and not overwrite:
-        logger.info(f"Ya existe, se omite: {dest_file.name}")
-        return dest_file
-
-    temporary_file = dest_file.with_suffix(f"{dest_file.suffix}.part")
-    try:
-        with session.get(url, stream=True, timeout=60) as response:
-            response.raise_for_status()
-            with temporary_file.open("wb") as file:
-                for chunk in response.iter_content(chunk_size=1024 * 256):
-                    if chunk:
-                        file.write(chunk)
-
-        with temporary_file.open("rb") as file:
-            signature = file.read(8)
-        is_excel = signature.startswith(b"PK") or signature.startswith(
-            b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
-        )
-        if not is_excel:
-            raise ValueError(
-                f"Lo descargado de {url} no parece un archivo Excel válido."
-            )
-
-        temporary_file.replace(dest_file)
-    finally:
-        temporary_file.unlink(missing_ok=True)
-
-    logger.success(
-        f"Descargado: {dest_file.name} ({dest_file.stat().st_size / 1024:.1f} KB)"
-    )
-    return dest_file
-
-
 @app.command()
 def download_marginacion_data(overwrite: bool = False):
-    """Descarga los índices municipales de marginación de 1990-2015 y 2020."""
-    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    """Descarga los índices municipales de marginación — template pendiente.
 
-    session = requests.Session()
-    session.headers.update(
-        {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-            ),
-            "Accept": "*/*",
-        }
+    TODO: implementar al retomar la capa de marginación (asignada al equipo).
+    Fuentes: Excel municipal 1990-2015 y 2020 (CONAPO/Sonora) y CSV modernos
+    de datos.gob.mx. Ver ``config.MARGINACION_1990_2015_URL``,
+    ``config.MARGINACION_2020_URL`` y ``config.MARGINACION_MUNICIPAL_CSV_URLS``.
+    """
+    logger.warning(
+        "La ingesta de marginación municipal está pausada (template). "
+        "Ver config.MARGINACION_* y docs/docs/protocolo_eda.md."
     )
-    retries = Retry(
-        total=4,
-        backoff_factor=1.5,
-        status_forcelist=(429, 500, 502, 503, 504),
-        allowed_methods=("GET",),
-    )
-    adapter = HTTPAdapter(max_retries=retries)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-
-    try:
-        sources = (
-            (
-                "indice_marginacion_municipal_1990_2015.xlsx",
-                MARGINACION_1990_2015_URL,
-            ),
-            ("indice_marginacion_municipal_2020.xlsx", MARGINACION_2020_URL),
-        )
-        for filename, url in sources:
-            _download_marginacion_file(
-                url,
-                RAW_DATA_DIR / filename,
-                session,
-                overwrite=overwrite,
-            )
-    finally:
-        session.close()
 
 
 @app.command()
 def download_marginacion_ageb_data(overwrite: bool = False):
-    """Descarga el índice de marginación urbana a nivel AGEB (CONAPO 2020).
+    """Descarga el índice de marginación urbana a nivel AGEB — template.
 
-    Fuente: CSV nacional en datos.gob.mx (``config.MARGINACION_AGEB_URL``).
-    Filtra Sonora y los municipios de ``config.TARGET_MUNICIPIOS`` y guarda
-    el resultado en ``data/interim/marginacion_imu_2020.csv``.
-
-    La cartografía de AGEB (geometrías) se obtiene por separado del INEGI —
-    ver ``references/marginacion/data_dictionary_marginacion_imu_2020.md``.
+    TODO: implementar al retomar la capa de marginación (asignada al equipo).
+    Fuente: CSV nacional en datos.gob.mx (``config.MARGINACION_AGEB_URL``),
+    filtrar Sonora y ``config.TARGET_MUNICIPIOS`` →
+    ``data/interim/marginacion/marginacion_imu_2020.csv``.
+    Cartografía AGEB por separado del INEGI — ver diccionario en
+    ``references/marginacion/``.
     """
-    raw_path = RAW_DATA_DIR / f"imu_{MARGINACION_AGEB_YEAR}.csv"
-    output_dir = INTERIM_DATA_DIR / "marginacion"
-    output_csv = output_dir / f"marginacion_imu_{MARGINACION_AGEB_YEAR}.csv"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    raw_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # 1. Descargar CSV nacional (requiere User-Agent de navegador)
-    if not (raw_path.exists() and raw_path.stat().st_size > 0) or overwrite:
-        logger.info(f"Descargando IMU {MARGINACION_AGEB_YEAR} desde datos.gob.mx...")
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-            ),
-            "Accept": "text/csv,*/*",
-        }
-        try:
-            with requests.get(
-                MARGINACION_AGEB_URL, headers=headers, stream=True, timeout=120
-            ) as response:
-                response.raise_for_status()
-                with raw_path.open("wb") as f:
-                    for chunk in response.iter_content(chunk_size=1024 * 256):
-                        if chunk:
-                            f.write(chunk)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"[ERROR DE RED] No se pudo descargar IMU AGEB: {e}")
-            raise
-        logger.success(f"Descargado: {raw_path} ({raw_path.stat().st_size / 1e6:.1f} MB)")
-    else:
-        logger.info(f"Ya existe, se omite descarga: {raw_path}")
-
-    # 2. Cargar solo las columnas necesarias y filtrar Sonora / municipios objetivo
-    usecols = [
-        "CVE_AGEB", "ENT", "NOM_ENT", "MUN", "NOM_MUN", "LOC", "NOM_LOC",
-        "AGEB", "POB_TOTAL", "P6A14NAE", "SBASC", "PSDSS", "OVSDE", "OVSEE",
-        "OVSAE", "OVPT", "OVSREF", "OVSINT", "OVSCEL", "OVHAC",
-        "IM_2020", "GM_2020", "IMN_2020", "fn_CVE_AGEB", "fn_AGEB",
-    ]
-    logger.info("Filtrando AGEBs de Sonora y municipios objetivo...")
-    df = pd.read_csv(raw_path, usecols=lambda c: c in usecols)
-
-    df_sonora = df[df["ENT"].astype(str).str.zfill(2) == "26"].copy()
-    if TARGET_MUNICIPIOS:
-        # CVE_AGEB = ENT(2) + MUN(3) + LOC(4) + AGEB(4) -> municipio = pos 0:5
-        muni_keys = {str(m).zfill(5) for m in TARGET_MUNICIPIOS}
-        df_sonora = df_sonora[
-            df_sonora["CVE_AGEB"].astype(str).str[:5].isin(muni_keys)
-        ].copy()
-
-    df_sonora.to_csv(output_csv, index=False, encoding="utf-8-sig")
-    logger.success(
-        f"Guardado: {output_csv} "
-        f"({len(df_sonora)} AGEBs de {df_sonora['NOM_MUN'].nunique()} municipios)"
+    logger.warning(
+        "La ingesta de marginación AGEB está pausada (template). "
+        "Ver config.MARGINACION_AGEB_URL y docs/docs/protocolo_eda.md."
     )
 
 
 @app.command()
 def download_marginacion_municipal_csvs(overwrite: bool = False):
-    """Descarga los CSV municipales modernos (2010, 2015, 2020) de datos.gob.mx.
+    """Descarga los CSV municipales modernos — template pendiente.
 
-    Serie con esquema ``IM_YYYY/GM_YYYY/IMN_YYYY`` (ver
-    ``references/marginacion/data_dictionary_marginacion_municipal.md``).
-    Los CSV son nacionales; se filtran a Sonora (``CVE_ENT=26``) y se guardan
-    en ``data/interim/marginacion/``.
+    TODO: implementar al retomar la capa de marginación. Serie
+    ``IM_YYYY/GM_YYYY/IMN_YYYY`` en ``config.MARGINACION_MUNICIPAL_CSV_URLS``
+    (datos.gob.mx, filtro ``CVE_ENT=26`` → ``data/interim/marginacion/``).
     """
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-        ),
-        "Accept": "text/csv,*/*",
-    }
-    output_dir = INTERIM_DATA_DIR / "marginacion"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    for year, url in MARGINACION_MUNICIPAL_CSV_URLS.items():
-        raw_path = RAW_DATA_DIR / f"marginacion_municipal_imm_{year}.csv"
-        output_csv = output_dir / f"marginacion_municipal_{year}.csv"
-
-        if not (raw_path.exists() and raw_path.stat().st_size > 0) or overwrite:
-            logger.info(f"Descargando marginación municipal {year}...")
-            try:
-                with requests.get(
-                    url, headers=headers, stream=True, timeout=60
-                ) as response:
-                    response.raise_for_status()
-                    with raw_path.open("wb") as f:
-                        for chunk in response.iter_content(chunk_size=1024 * 256):
-                            if chunk:
-                                f.write(chunk)
-            except requests.exceptions.RequestException as e:
-                logger.error(f"[ERROR DE RED] {year}: {e}")
-                continue
-            logger.success(f"{year}: descargado ({raw_path.stat().st_size / 1e6:.1f} MB)")
-
-        logger.info(f"Filtrando Sonora ({year})...")
-        df = pd.read_csv(raw_path)
-        cve_ent_col = next(
-            (c for c in df.columns if str(c).upper() in ("CVE_ENT", "ENT")), None
-        )
-        if cve_ent_col is not None:
-            df_sonora = df[
-                df[cve_ent_col].astype(str).str.replace(".0", "", regex=False).str.zfill(2) == "26"
-            ].copy()
-        else:
-            df_sonora = df.copy()
-
-        df_sonora.to_csv(output_csv, index=False, encoding="utf-8-sig")
-        logger.success(
-            f"{year}: {len(df_sonora)} municipios guardados en {output_csv.name}"
-        )
+    logger.warning(
+        "La ingesta de marginación municipal moderna está pausada (template). "
+        "Ver config.MARGINACION_MUNICIPAL_CSV_URLS y docs/docs/protocolo_eda.md."
+    )
 
 
 @app.command()
@@ -494,22 +323,16 @@ def data_ingestion_pipeline(start_year: int = 2019, end_year: int = 2024):
     logger.info("Paso 3/5: Descargando datos de temperatura media...")
     download_temperature_data(start_year, end_year)
 
-    logger.info("Paso 4/5: Descargando datos de marginación municipal...")
-    download_marginacion_data()
-
-    logger.info("Paso 5/6: Descargando marginación AGEB (CONAPO 2020)...")
+    logger.info("Capas pendientes (marginación, aire, salud)...")
     download_marginacion_ageb_data()
-
-    logger.info("Paso 6/6: Descargando marginación municipal moderna (2010-2020)...")
+    download_marginacion_data()
     download_marginacion_municipal_csvs()
-
-    logger.info("Capas pendientes (aire, salud)...")
     download_air_quality_data()
     download_respiratory_health_data()
 
     logger.warning(
-        "Pipeline completado con advertencias: las capas de aire y salud "
-        "están pendientes de fuente. Ver docs/docs/protocolo_eda.md."
+        "Pipeline completado con advertencias: las capas de marginación, "
+        "aire y salud están pendientes. Ver docs/docs/protocolo_eda.md."
     )
 
 
