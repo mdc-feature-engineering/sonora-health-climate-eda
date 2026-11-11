@@ -40,7 +40,7 @@ def add_lags(
 def add_rolling_mean(
     df: pd.DataFrame,
     columns: list[str],
-    windows: list[int] = [3, 7],
+    windows: list[int] | None = None,
 ) -> pd.DataFrame:
     """Agrega promedios móviles para exposición acumulada.
 
@@ -58,12 +58,12 @@ def add_rolling_mean(
     pd.DataFrame
         Copia con columnas ``{col}_ma{w}``.
     """
+    if windows is None:
+        windows = [3, 7]
     result = df.copy()
     for col in columns:
         for window in windows:
-            result[f"{col}_ma{window}"] = (
-                result[col].rolling(window=window, min_periods=1).mean()
-            )
+            result[f"{col}_ma{window}"] = result[col].rolling(window=window, min_periods=1).mean()
     return result
 
 
@@ -71,7 +71,7 @@ def build_lagged_dataset(
     df: pd.DataFrame,
     exposure_cols: list[str],
     response_col: str,
-    lags: range | list[int] = range(0, 6),
+    lags: range | list[int] = range(6),
     rolling_windows: list[int] | None = None,
 ) -> pd.DataFrame:
     """Construye la matriz de diseño con rezagos para el modelado GLM.
@@ -146,17 +146,11 @@ def cross_correlation_function(
 
     if len(x) < 2 * max_lag + 2 or len(y) < 2 * max_lag + 2:
         raise ValueError(
-            f"Series demasiado cortas para CCF con max_lag={max_lag} "
-            f"(n_x={len(x)}, n_y={len(y)})."
+            f"Series demasiado cortas para CCF con max_lag={max_lag} (n_x={len(x)}, n_y={len(y)})."
         )
 
     lags = np.arange(-max_lag, max_lag + 1)
-    ccf_values = np.array(
-        [
-            _ccf_at_lag(x, y, lag)
-            for lag in lags
-        ]
-    )
+    ccf_values = np.array([_ccf_at_lag(x, y, lag) for lag in lags])
     return lags, ccf_values
 
 
@@ -244,7 +238,7 @@ def lagged_correlations(
         Columnas: ``lag``, ``pearson``, ``spearman``.
     """
     rows = []
-    for lag in range(0, max_lag + 1):
+    for lag in range(max_lag + 1):
         x = df[exposure_col].shift(lag)
         y = df[response_col]
         valid = x.notna() & y.notna()

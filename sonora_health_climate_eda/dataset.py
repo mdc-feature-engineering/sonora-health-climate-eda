@@ -10,14 +10,12 @@ Capas (ver ``docs/docs/protocolo_eda.md``):
 
 import os
 import time
-import urllib3
-from pathlib import Path
 
+from loguru import logger
 import pandas as pd
 import requests
 import typer
-from loguru import logger
-from tqdm import tqdm
+import urllib3
 
 from sonora_health_climate_eda.config import (
     CONAGUA_BASE_URL,
@@ -86,14 +84,10 @@ def download_drought_data(start_year: int = 2019, end_year: int = 2024):
 
     # 5. Apply `melt` to convert to long format (Tidy Data).
     logger.info("Transformando a formato largo (Tidy Data)...")
-    df_melted = df_sonora.melt(
-        id_vars=id_vars, var_name="fecha", value_name="categoria_sequia"
-    )
+    df_melted = df_sonora.melt(id_vars=id_vars, var_name="fecha", value_name="categoria_sequia")
 
     # 6. Clean and convert dates
-    df_melted["fecha"] = pd.to_datetime(
-        df_melted["fecha"], errors="coerce", format="mixed"
-    )
+    df_melted["fecha"] = pd.to_datetime(df_melted["fecha"], errors="coerce", format="mixed")
     df_melted = df_melted.dropna(subset=["fecha"])
 
     # 7. Filtrar estrictamente el rango de años
@@ -104,10 +98,7 @@ def download_drought_data(start_year: int = 2019, end_year: int = 2024):
 
     # 8. Strictly filter the year range
     df_filtered["severidad_num"] = (
-        df_filtered["categoria_sequia"]
-        .map(DROUGHT_SEVERITY_MAP)
-        .fillna(0)
-        .astype(int)
+        df_filtered["categoria_sequia"].map(DROUGHT_SEVERITY_MAP).fillna(0).astype(int)
     )
 
     # 9. Save a separate CSV file for each year
@@ -151,9 +142,7 @@ def download_rain_data(start_year: int = 2019, end_year: int = 2024):
             file_url = (
                 CONAGUA_BASE_URL + "/" + file_name
             )  # Url completa del archivo en el servidor
-            local_path = os.path.join(
-                year_folder, file_name
-            )  # Ruta local final del archivo
+            local_path = os.path.join(year_folder, file_name)  # Ruta local final del archivo
 
             try:
                 res = requests.get(
@@ -163,15 +152,13 @@ def download_rain_data(start_year: int = 2019, end_year: int = 2024):
                 if res.status_code == 200:
                     with open(local_path, "wb") as f:
                         f.write(res.content)
-                    logger.success(
-                        f"Año {year_str} | Mes {mes_str}: Descargado con éxito"
-                    )
+                    logger.success(f"Año {year_str} | Mes {mes_str}: Descargado con éxito")
                 else:
                     # Si el mes no está disponible en el servidor (ej. código 404)
                     logger.warning(
                         f"Año {year_str} | Mes {mes_str}: No disponible (Status {res.status_code})"
                     )
-            except Exception as e:
+            except (requests.RequestException, OSError) as e:
                 # Por si se interrumpe la conexión a internet
                 logger.error("Error al descargar %s: %s", file_name, e)
 
@@ -218,19 +205,16 @@ def download_temperature_data(start_year: int = 2019, end_year: int = 2024):
                 if res.status_code == 200:
                     with open(local_path, "wb") as f:
                         f.write(res.content)
-                    logger.success(
-                        f"Año {year_str} | Mes {mes_str}: Descargado con éxito"
-                    )
+                    logger.success(f"Año {year_str} | Mes {mes_str}: Descargado con éxito")
                 else:
                     logger.warning(
-                        f"Año {year_str} | Mes {mes_str}: No disponible (Status"
-                        f" {res.status_code})"
+                        f"Año {year_str} | Mes {mes_str}: No disponible (Status {res.status_code})"
                     )
 
                 # Pausa de cortesía para no saturar al SMN
                 time.sleep(0.5)
 
-            except Exception as e:
+            except (requests.RequestException, OSError) as e:
                 logger.error(f"Error al descargar {file_name}: {e}")
 
     logger.success("Descargas de temperatura media completadas.")

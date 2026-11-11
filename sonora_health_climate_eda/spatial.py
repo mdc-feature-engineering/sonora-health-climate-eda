@@ -4,11 +4,9 @@ Soporta el *spatial join* entre AGEBs (o municipios) y estaciones de
 monitoreo (clima, calidad del aire), y el filtrado por clave INEGI.
 """
 
-from typing import Optional
-
 import geopandas as gpd
-import pandas as pd
 from loguru import logger
+import pandas as pd
 
 from sonora_health_climate_eda.config import (
     HERMOSILLO_CVE_MUN,
@@ -44,9 +42,7 @@ def filter_by_municipio(
     claves = [str(c).zfill(5) for c in ([cve_mun] if not isinstance(cve_mun, list) else cve_mun)]
     mask = df[cve_col].astype(str).str.zfill(5).isin(claves)
     filtered = df.loc[mask].copy()
-    logger.info(
-        f"Filtro municipal {claves}: {len(filtered)}/{len(df)} registros."
-    )
+    logger.info(f"Filtro municipal {claves}: {len(filtered)}/{len(df)} registros.")
     return filtered
 
 
@@ -120,7 +116,7 @@ def assign_stations_to_areas(
 
 def clip_to_hermosillo(
     gdf: gpd.GeoDataFrame,
-    cve_urbana: Optional[str] = HERMOSILLO_CVE_MUN,
+    cve_urbana: str | None = HERMOSILLO_CVE_MUN,
 ) -> gpd.GeoDataFrame:
     """Recorta un GeoDataFrame a los AGEBs/municipios objetivo.
 

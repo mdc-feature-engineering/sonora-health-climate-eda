@@ -5,20 +5,20 @@ Binomial Negativa, incluyendo términos de rezago y de interacción
 marginación × exposición.
 """
 
-from typing import Literal, Optional
+from typing import Literal
 
+from loguru import logger
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-from loguru import logger
 
 
 def fit_count_glm(
     df: pd.DataFrame,
     formula: str,
     family: Literal["poisson", "negbin"] = "negbin",
-    offset_col: Optional[str] = None,
+    offset_col: str | None = None,
 ) -> "sm.genmod.generalized_linear_model.GLMResults":
     """Ajusta un GLM de conteos con statsmodels.
 
@@ -112,7 +112,7 @@ def build_design_matrix(
     exposure_cols: list[str],
     response_col: str,
     static_cols: list[str] | None = None,
-    lags: range | list[int] = range(0, 6),
+    lags: range | list[int] = range(6),
     include_interactions: bool = True,
     marginacion_col: str = "marginacion",
 ) -> pd.DataFrame:
@@ -157,9 +157,7 @@ def build_design_matrix(
     # Binaria de alta marginación (mediana como umbral por defecto)
     if marginacion_col in design.columns:
         threshold = design[marginacion_col].median()
-        design[f"{marginacion_col}_alta"] = (
-            design[marginacion_col] > threshold
-        ).astype(int)
+        design[f"{marginacion_col}_alta"] = (design[marginacion_col] > threshold).astype(int)
 
     # Interacciones exposición × alta marginación (término clave del protocolo)
     if include_interactions and f"{marginacion_col}_alta" in design.columns:
@@ -200,8 +198,6 @@ def formula_from_design(
         Fórmula tipo ``"casos ~ var1 + var2 + ..."``.
     """
     predictors = [
-        c
-        for c in design_df.columns
-        if c not in [response_col] and not c.startswith("fecha")
+        c for c in design_df.columns if c not in [response_col] and not c.startswith("fecha")
     ]
     return f"{response_col} ~ " + " + ".join(predictors)

@@ -1,6 +1,6 @@
+from loguru import logger
 import pandas as pd
 import typer
-from loguru import logger
 
 from sonora_health_climate_eda.config import INTERIM_DATA_DIR, REFERENCES_DIR
 
@@ -21,9 +21,7 @@ def make_sequia_conagua_data_dictionary():
         "Entidad": "Nombre oficial de la entidad federativa.",
         "Cve_Municipio": "Clave oficial del municipio (INEGI).",
         "Municipio": "Nombre oficial del municipio.",
-        "CVE_CONCATENADA": (
-            "Clave concatenada única del municipio (Entidad + Municipio)."
-        ),
+        "CVE_CONCATENADA": ("Clave concatenada única del municipio (Entidad + Municipio)."),
         "CVE_ENT": "Clave de la entidad federativa en formato estandarizado.",
         "CVE_MUN": "Clave del municipio en formato estandarizado.",
         "NOMBRE_MUN": "Nombre oficial del municipio en mayúsculas.",
@@ -34,9 +32,7 @@ def make_sequia_conagua_data_dictionary():
         "fecha": "Fecha correspondiente a la quincena de evaluación del monitor.",
         "categoria_sequia": ("Clasificación oficial de sequía (Sin Sequía, D0 a D4)."),
         "Anio": "Año extraído de la fecha de evaluación.",
-        "severidad_num": (
-            "Escala numérica de severidad asignada (0 = Sin Sequía hasta 5 = D4)."
-        ),
+        "severidad_num": ("Escala numérica de severidad asignada (0 = Sin Sequía hasta 5 = D4)."),
     }
 
     if sample_files:
@@ -67,11 +63,7 @@ def make_sequia_conagua_data_dictionary():
             "severidad_num",
         ]
         column_dtypes = {
-            col: (
-                "int64"
-                if "Cve" in col or col == "Anio" or col == "severidad_num"
-                else "object"
-            )
+            col: ("int64" if "Cve" in col or col == "Anio" or col == "severidad_num" else "object")
             for col in default_columns
         }
 
@@ -98,9 +90,7 @@ def make_sequia_conagua_data_dictionary():
         lines.append(f"| `{col}` | `{dtype}` | {desc} |")
 
     output_md.write_text("\n".join(lines), encoding="utf-8")
-    logger.success(
-        f"Diccionario de sequía generado con éxito en: {output_md.resolve()}"
-    )
+    logger.success(f"Diccionario de sequía generado con éxito en: {output_md.resolve()}")
 
 
 @app.command()

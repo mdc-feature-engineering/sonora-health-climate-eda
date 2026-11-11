@@ -112,8 +112,7 @@ CLIMATE_STATION_IDS = []  # Pendiente
 # Capa 3 — Monitor de Sequía (SMN/CONAGUA)
 # ---------------------------------------------------------------------------
 CONAGUA_DROUGHT_URL = (
-    "https://smn.conagua.gob.mx/tools/RESOURCES/"
-    "Monitor de Sequia en Mexico/MunicipiosSequia.xlsx"
+    "https://smn.conagua.gob.mx/tools/RESOURCES/Monitor de Sequia en Mexico/MunicipiosSequia.xlsx"
 )
 
 # Severidad de sequía (escala numérica usada en el análisis)
