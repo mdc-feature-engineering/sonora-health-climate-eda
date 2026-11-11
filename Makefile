@@ -2,7 +2,7 @@
 # GLOBALS                                                                       #
 #################################################################################
 
-PROJECT_NAME = sonora-agriclimate-eda
+PROJECT_NAME = sonora-health-climate-eda
 PYTHON_VERSION = 3.13
 PYTHON_INTERPRETER = python
 
@@ -53,7 +53,7 @@ format:
 ## Make dataset
 .PHONY: data
 data: requirements
-	$(PYTHON_INTERPRETER) sonora_agriclimate_eda/dataset.py
+	$(PYTHON_INTERPRETER) -m sonora_health_climate_eda.dataset data-ingestion-pipeline
 
 
 #################################################################################

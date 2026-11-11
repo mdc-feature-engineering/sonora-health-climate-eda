@@ -1,83 +1,100 @@
-# Sonora Agri-Climate EDA
+# Sonora Health-Climate EDA
 
-<a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
-    <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
-</a>
+> Análisis exploratorio y modelado espacio-temporal de la vulnerabilidad socioeconómica y climática ante enfermedades respiratorias en Hermosillo, Sonora.
 
-> Análisis exploratorio de datos para evaluar el impacto del colapso ambiental y la sequía en los municipios agrícolas del estado de Sonora.
+## Pregunta de investigación
 
-## Descripción del Proyecto
-Este proyecto investiga cómo las crisis y el colapso ambiental (con un enfoque principal en las tendencias históricas de sequía y estrés hídrico) han afectado a los municipios agrícolas en el estado de Sonora. 
+¿De qué manera la población **marginalizada en Hermosillo** presenta una mayor **exposición y vulnerabilidad** a enfermedades asociadas al **calor extremo y la sequía**, mediada por la **calidad del aire** y los **efectos de rezago temporal**?
+
+El protocolo metodológico completo está en [`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md).
+
+## Capas de datos
+
+| # | Capa | Fuente | Estado |
+|---|------|--------|--------|
+| 1 | Índice de marginación | CONAPO / INEGI (AGEB 2020 + municipal 1990–2015/2020) | Disponible |
+| 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) | Disponible |
+| 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA | Disponible |
+| 4 | Calidad del aire (PM2.5, PM10, O3) | SINAICA / datos abiertos Sonora | Pendiente de fuente |
+| 5 | Enfermedades respiratorias | SINAVE / SSA | Pendiente de fuente y granularidad |
+
+> Las capas 4 y 5 tienen comandos stub en `dataset.py` y notebooks esqueleto en `notebooks/01_ingesta/`. Ver los `TODO` en `sonora_health_climate_eda/config.py`.
 
 ## Project Organization
 
 ```
-├── LICENSE            <- Open-source license if one is chosen
-├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
+├── LICENSE
+├── Makefile              <- Comandos de conveniencia (make data, make lint)
+├── README.md
 ├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
+│   ├── external          <- Datos de terceros
+│   ├── interim           <- Datos intermedios transformados
+│   ├── processed         <- Datasets finales para modelado
+│   └── raw               <- Datos crudos inmutables
 │
-├── docs               <- A default mkdocs project; see www.mkdocs.org for details
+├── docs                  <- Documentación mkdocs + protocolo_eda.md
+├── models                <- Modelos entrenados y resultados
+├── notebooks
+│   ├── 01_ingesta        <- Descarga/limpieza de las capas (aire y salud pendientes)
+│   ├── 02_eda            <- Fases B y C: univariado, bivariado/CCF, espacial
+│   └── 03_modelado       <- Fase D: GLM Poisson/NB con rezagos e interacciones
 │
-├── models             <- Trained and serialized models, model predictions, or model summaries
-│
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│   │                      the creator's initials, and a short `-` delimited description, e.g.
-│   │                      `1.0-jqp-initial-data-exploration`.
-│   ├── agriculture    <- Data from agriculture sources.
-│   ├── climate        <- Data from climate sources.
-│   └── water resources<- Data from water resources sources.
-│
-├── pyproject.toml     <- Project configuration file with package metadata for 
-│                         sonora_agriclimate_eda and configuration for tools like black
-│
-├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-│   ├── agriculture    <- Data from agriculture sources.
-│   ├── climate        <- Data from climate sources.
-│   └── water resources<- Data from water resources sources.
-│
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
-│
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
-│
-├── setup.cfg          <- Configuration file for flake8
-│
-└── sonora_agriclimate_eda   <- Source code for use in this project.
-    │
-    ├── __init__.py             <- Makes sonora_agriclimate_eda a Python module
-    │
-    ├── config.py               <- Store useful variables and configuration
-    │
-    ├── dataset.py              <- Scripts to download or generate data
-    │
-    ├── features.py             <- Code to create features for modeling
-    │
-    ├── utils.py                <- Helper functions and reusable scripts
-    │
-    ├── modeling                
-    │   ├── __init__.py 
-    │   ├── predict.py          <- Code to run model inference with trained models          
-    │   └── train.py            <- Code to train models
-    │
-    └── plots.py                <- Code to create visualizations
+├── pyproject.toml
+├── references            <- Diccionarios de datos por fuente
+│   ├── clima/            <- CONAGUA (temperatura, lluvia, sequía)
+│   ├── aire/             <- (pendiente)
+│   └── salud/            <- (pendiente)
+├── reports
+│   └── figures           <- Gráficos generados
+├── requirements.txt
+└── sonora_health_climate_eda   <- Paquete Python del proyecto
+    ├── config.py         <- Rutas, URLs de fuentes, constantes del protocolo
+    ├── dataset.py        <- Comandos typer de descarga/ingesta
+    ├── schemas.py        <- Esquemas pydantic de los datasets
+    ├── utils.py          <- Generación de diccionarios de datos
+    ├── lags.py           <- Rezagos temporales y función de correlación cruzada
+    ├── spatial.py        <- Spatial joins AGEB ↔ estaciones, filtros INEGI
+    ├── glms.py           <- GLM Poisson/NB con interacciones
+    ├── features.py       <- Ingeniería de características
+    ├── plots.py          <- Visualizaciones
+    └── modeling/         <- Entrenamiento/predicción (stub)
 ```
 
---------
-
-## Descargar datos de marginación
-
-Para descargar los archivos municipales de 1990–2015 y 2020 en `data/raw/`:
+## Setup
 
 ```bash
-python -m sonora_agriclimate_eda.dataset download-marginacion-data
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .   # opcional, para usar el paquete sin sys.path
 ```
 
-Los archivos existentes se conservan. Para descargarlos de nuevo, usa
-`--overwrite`.
-La descarga también forma parte de `data_ingestion_pipeline`.
+## Uso
+
+### Descargar datos (capas disponibles)
+
+```bash
+# Pipeline completo de capas disponibles
+python -m sonora_health_climate_eda.dataset data-ingestion-pipeline
+
+# Individuales
+python -m sonora_health_climate_eda.dataset download-marginacion-data
+python -m sonora_health_climate_eda.dataset download-drought-data
+python -m sonora_health_climate_eda.dataset download-temperature-data
+python -m sonora_health_climate_eda.dataset download-rain-data
+```
+
+O desde el Makefile:
+
+```bash
+make data
+```
+
+Los archivos existentes en `data/raw/` se conservan; usa `--overwrite` donde
+aplique para volver a descargarlos.
+
+### Lint / formato
+
+```bash
+make lint    # ruff format --check + ruff check
+make format  # ruff check --fix + ruff format
+```

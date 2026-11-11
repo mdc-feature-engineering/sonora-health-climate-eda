@@ -58,3 +58,7 @@ fastparquet
 pyarrow
 lxml
 bs4
+statsmodels
+geopandas
+scipy
+shapely

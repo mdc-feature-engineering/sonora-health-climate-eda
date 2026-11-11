@@ -3,30 +3,28 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "sonora_agriclimate_eda"
-version = "0.0.1"
-description = "Exploratory data analysis of climate patterns and agricultural impact in Sonora"
+name = "sonora_health_climate_eda"
+version = "0.1.0"
+description = "EDA de vulnerabilidad socioeconómica y climática ante enfermedades respiratorias en Hermosillo, Sonora"
 authors = [
-  { name = "Your name (or your organization/company/team)" },
+  { name = "PatQz" },
 ]
 
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
-    
 ]
 requires-python = "~=3.13.0"
 
 
 [tool.ruff]
 line-length = 99
-src = ["sonora_agriclimate_eda"]
-include = ["pyproject.toml", "sonora_agriclimate_eda/**/*.py"]
+src = ["sonora_health_climate_eda"]
+include = ["pyproject.toml", "sonora_health_climate_eda/**/*.py"]
 
 [tool.ruff.lint]
 extend-select = ["I"]  # Add import sorting
 
 [tool.ruff.lint.isort]
-known-first-party = ["sonora_agriclimate_eda"]
+known-first-party = ["sonora_health_climate_eda"]
 force-sort-within-sections = true
-

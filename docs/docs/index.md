@@ -1,10 +1,16 @@
-# Sonora Agri-Climate EDA documentation!
+# Sonora Health-Climate EDA documentation!
 
 ## Description
 
-Exploratory data analysis of climate patterns and agricultural impact in Sonora
+Análisis exploratorio y modelado espacio-temporal de la vulnerabilidad
+socioeconómica y climática ante enfermedades respiratorias en Hermosillo,
+Sonora. El protocolo metodológico está en
+[`protocolo_eda.md`](protocolo_eda.md).
 
-## Commands
+## Comandos
 
-The Makefile contains the central entry points for common tasks related to this project.
+El `Makefile` contiene los puntos de entrada principales:
 
+- `make data` — ejecuta el pipeline de ingesta (`data-ingestion-pipeline`)
+- `make lint` / `make format` — linting y formato con ruff
+- `make clean` — elimina archivos `.pyc` y `__pycache__`

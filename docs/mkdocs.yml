@@ -1,4 +1,7 @@
-site_name: Sonora Agri-Climate EDA
-# 
-site_author: Your name (or your organization/company/team)
-# 
+site_name: Sonora Health-Climate EDA
+site_author: PatQz
+
+nav:
+  - Inicio: index.md
+  - Protocolo EDA: ../protocolo_eda.md
+  - Primeros pasos: getting-started.md
