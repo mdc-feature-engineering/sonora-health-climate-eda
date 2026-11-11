@@ -4,6 +4,12 @@
 > están **pendientes** y bloquean el análisis integrado. Ver
 > `docs/docs/protocolo_eda.md` para el detalle metodológico.
 
+## Auto-EDA (primer análisis rápido)
+
+| Notebook | Descripción | Estado |
+|----------|-------------|--------|
+| `00_auto_eda/0.0-auto-eda.ipynb` | Reporte automático con `ydata-profiling` → `reports/auto_eda_report.html` | 📝 Template (requiere panel integrado) |
+
 ## Estado de las capas de datos
 
 | Capa | Notebook | Estado | Responsable |
@@ -33,6 +39,10 @@
 | `2.1-univariado.ipynb` | Series temporales, estacionalidad, mapas coropléticos | 🔴 Bloqueado |
 | `2.2-bivariado-ccf.ipynb` | Pearson/Spearman + función de correlación cruzada (rezagos) | 🔴 Bloqueado |
 | `2.3-espacial-coropletico.ipynb` | Mapas marginación × morbilidad × exposición | 🔴 Bloqueado |
+| `2.4-datos-faltantes.ipynb` | % faltantes, missingno, patrones temporales, imputación | 📝 Template (rúbrica: datos faltantes) |
+| `2.5-outliers.ipynb` | Outliers con ≥2 técnicas: IQR/Z-score, Isolation Forest, LOF | 📝 Template (rúbrica: anomalías) |
+| `2.6-correlacion.ipynb` | Heatmaps Pearson/Spearman, correlación con variable objetivo | 📝 Template (rúbrica: correlación) |
+| `2.7-reduccion-dimensionalidad.ipynb` | PCA (scree, loadings) + t-SNE para visualización | 📝 Template (rúbrica: reducción de características) |
 
 ### `03_modelado/` — Fase D
 | Notebook | Descripción | Estado |

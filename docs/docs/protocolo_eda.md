@@ -58,16 +58,19 @@ Para llevar a cabo este análisis, se integrarán cinco capas de información cl
 ## 3. Estructura Metodológica del EDA (Análisis Exploratorio de Datos)
 
 ### Fase A: Ingesta, Limpieza e Integración de Datos (ETL)
-* Manejo de valores faltantes en series temporales climáticas y de calidad del aire.
+* **Análisis de datos faltantes:** cuantificación del porcentaje de faltantes por variable, identificación de patrones temporales (días/temporadas completas ausentes, p.ej. mantenimiento de estaciones) y definición de la estrategia de imputación por variable (interpolación temporal, media por estación, forward-fill o exclusión justificada). *(Libreta: `02_eda/2.4-datos-faltantes.ipynb`)*
 * Estandarización de claves geoespaciales (INEGI GEOID) y uniones espaciales (*spatial joins*) entre AGEBs y estaciones de medición.
 
 ### Fase B: Análisis Univariado
 * **Distribución temporal:** Análisis de estacionalidad y tendencias en series temporales diarias de temperatura, calidad del aire y picos de consultas respiratorias.
 * **Distribución espacial:** Mapas coropléticos de Hermosillo cruzando grados de marginación urbana con la incidencia acumulada de morbilidad respiratoria.
+* **Detección de anomalías (outliers):** aplicación de **al menos dos técnicas** — regla IQR/Z-score (univariado e interpretable), Isolation Forest y Local Outlier Factor (multivariado, sobre variables estandarizadas) — con comparación de resultados. Los outliers se clasifican como *eventos reales* (olas de calor, picos de contaminación, brotes epidemiológicos) o *errores de datos*, y se documenta la decisión de tratamiento para cada uno. *(Libreta: `02_eda/2.5-outliers.ipynb`)*
 
 ### Fase C: Análisis Bivariado y Correlaciones Cruzadas
-* **Correlaciones de Pearson/Spearman:** Evaluación de la relación lineal entre días con mala calidad del aire ($PM_{2.5}/PM_{10}$ elevados) y el incremento de consultas respiratorias.
+* **Correlaciones de Pearson/Spearman:** Evaluación de la relación lineal entre días con mala calidad del aire ($PM_{2.5}/PM_{10}$ elevados) y el incremento de consultas respiratorias, con heatmaps de correlación entre todas las variables numéricas, correlación específica con la variable de respuesta y prueba de significancia estadística. *(Libretas: `02_eda/2.6-correlacion.ipynb` y `02_eda/2.2-bivariado-ccf.ipynb`)*
+* **Visualización de relaciones:** scatter plots y matrices de dispersión (*pairplot*) de las variables con correlación más fuerte.
 * **Función de Correlación Cruzada (CCF):** Identificación empírica del número óptimo de días de rezago entre la exposición ambiental y la respuesta médica.
+* **Reducción de dimensionalidad para visualización:** proyección del panel a 2-3 dimensiones con **PCA** (scree plot, loadings, scatter coloreado por marginación/estación) y **t-SNE** (estructura de clusters no lineal), para explorar si los AGEBs/periodos se agrupan por nivel de marginación, estación del año o intensidad de exposición. *(Libreta: `02_eda/2.7-reduccion-dimensionalidad.ipynb`)*
 
 ### Fase D: Análisis Multivariado y Modelado Estadístico (GLM)
 * Implementación de Modelos Lineales Generalizados (GLM) con distribución de **Poisson** o **Binomial Negativa** (ideales para conteo de casos médicos):
@@ -103,3 +106,67 @@ df['pm25_ma3'] = df['pm25'].rolling(window=3).mean()
 
 ### Modelado Avanzado Opcional:
 Para un nivel superior de posgrado, se pueden integrar **Distributed Lag Models (DLM)** o **Distributed Lag Non-Linear Models (DLNM)** para estimar curvas de retardo-respuesta no lineales a lo largo del tiempo.
+
+---
+
+## 5. Entregables del Proyecto
+
+### 5.1 Auto-EDA (primer análisis rápido)
+
+Una libreta de **auto-EDA** que genere un reporte exploratorio automático y
+rápido sobre el dataset integrado, visualizable como parte de la página del
+proyecto en GitHub.
+
+- *Herramienta:* `ydata-profiling` (reporte HTML interactivo con
+  estadísticas, distribuciones, correlaciones y faltantes).
+- *Entrada:* panel integrado `data/processed/panel_hermosillo.parquet`
+  (salida de `02_eda/2.0-integracion-espacial.ipynb`).
+- *Salida:* `reports/auto_eda_report.html` (commiteado y enlazado desde
+  `README.md`).
+- *Libreta:* `notebooks/00_auto_eda/0.0-auto-eda.ipynb`.
+
+### 5.2 Libretas de análisis exploratorio
+
+Las libretas de `notebooks/02_eda/` cubren los aspectos del análisis
+exploratorio (ver el mapa aspecto → libreta en `notebooks/README.md`):
+
+| Aspecto | Libreta |
+|---------|---------|
+| Integración espacial/temporal del panel | `2.0-integracion-espacial.ipynb` |
+| Distribuciones univariadas (temporal y espacial) | `2.1-univariado.ipynb` |
+| Bivariado, correlación y rezagos (CCF) | `2.2-bivariado-ccf.ipynb` |
+| Mapas coropléticos marginación × morbilidad × exposición | `2.3-espacial-coropletico.ipynb` |
+| Datos faltantes | `2.4-datos-faltantes.ipynb` |
+| Anomalías/outliers (≥2 técnicas) | `2.5-outliers.ipynb` |
+| Correlación entre variables | `2.6-correlacion.ipynb` |
+| Reducción de características (PCA, t-SNE) | `2.7-reduccion-dimensionalidad.ipynb` |
+
+### 5.3 Consulta con los usuarios durante la exploración
+
+El proceso de exploración es **iterativo y se consulta con el equipo/usuarios
+en los puntos de decisión**, no es un flujo lineal:
+
+- **Checkpoint 1 — Calidad de datos:** revisión del análisis de faltantes y
+  outliers; se decide qué variables/periodos se conservan, se imputan o se
+  excluyen.
+- **Checkpoint 2 — Hallazgos exploratorios:** revisión de correlaciones,
+  rezagos (CCF) y estructura multivariada (PCA/t-SNE) para decidir qué
+  relaciones se profundizan en el modelado GLM.
+- **Checkpoint 3 — Interpretación:** validación de que los hallazgos
+  responden las preguntas de investigación antes de redactar el reporte.
+
+### 5.4 Reporte final
+
+Al concluir el EDA se integra un **reporte final** (markdown; `pdf`/`html`
+según formato de entrega) con la siguiente estructura, en este orden:
+
+1. **Nombre del proyecto.**
+2. **Equipo e integrantes:** nombre del equipo (opcional) y nombres de los
+   integrantes con su información de contacto (correo, LinkedIn, etc.).
+3. **Resumen** de uno o dos párrafos con los hallazgos más importantes,
+   escritos de forma directa.
+4. **Gráfica o imagen representativa** del hallazgo más importante.
+5. **Detalle de los hallazgos** (máximo 3 páginas), incluyendo bibliografía
+   y gráficas.
+
+*Template:* `reports/reporte_final_template.md`.

@@ -40,8 +40,9 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 ├── docs                  <- Documentación mkdocs + protocolo_eda.md
 ├── models                <- Modelos entrenados y resultados
 ├── notebooks
+│   ├── 00_auto_eda      <- Auto-EDA con ydata-profiling (reporte HTML)
 │   ├── 01_ingesta        <- Descarga/limpieza de las capas (aire pendiente; salud por implementar)
-│   ├── 02_eda            <- Fases B y C: univariado, bivariado/CCF, espacial
+│   ├── 02_eda            <- Fases B y C: univariado, bivariado/CCF, espacial + templates del rúbrica (faltantes, outliers, correlación, PCA/t-SNE)
 │   └── 03_modelado       <- Fase D: GLM Poisson/NB con rezagos e interacciones
 │
 ├── pyproject.toml
@@ -51,7 +52,9 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 │   ├── aire/             <- (pendiente)
 │   └── salud/            <- (pendiente)
 ├── reports
-│   └── figures           <- Gráficos generados
+│   ├── figures           <- Gráficos generados
+│   ├── auto_eda_report.html  <- Reporte auto-EDA (ydata-profiling, una vez ejecutado)
+│   └── reporte_final_template.md  <- Template del reporte final (rúbrica)
 ├── requirements.txt
 └── sonora_health_climate_eda   <- Paquete Python del proyecto
     ├── config.py         <- Rutas, URLs de fuentes, constantes del protocolo
@@ -68,8 +71,15 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 
 ## Setup
 
+Requiere **Python 3.13** (`ydata-profiling` no soporta 3.14).
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
+# Opción A — uv (recomendada, no requiere pip en el venv)
+uv venv --python 3.13 .venv && source .venv/bin/activate
+uv pip install -r requirements.txt
+
+# Opción B — venv + pip
+python3.13 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 pip install -e .   # opcional, para usar el paquete sin sys.path
 ```
@@ -94,8 +104,18 @@ O desde el Makefile:
 make data
 ```
 
-Los archivos existentes en `data/raw/` se conservan; usa `--overwrite` donde
-aplique para volver a descargarlos.
+### Auto-EDA y libretas
+
+```bash
+# Reporte automático (ydata-profiling) — requiere el panel integrado en
+# data/processed/panel_hermosillo.parquet; ver notebooks/00_auto_eda/
+jupyter notebook notebooks/00_auto_eda/0.0-auto-eda.ipynb
+```
+
+El índice completo de libretas (incluyendo los templates del rúbrica:
+datos faltantes, outliers, correlación, PCA/t-SNE) está en
+[`notebooks/README.md`](notebooks/README.md). El template del reporte final
+está en [`reports/reporte_final_template.md`](reports/reporte_final_template.md).
 
 ### Lint / formato
 
