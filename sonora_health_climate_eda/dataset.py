@@ -337,7 +337,7 @@ def download_marginacion_ageb_data(overwrite: bool = False):
     el resultado en ``data/interim/marginacion_imu_2020.csv``.
 
     La cartografía de AGEB (geometrías) se obtiene por separado del INEGI —
-    ver ``pendientes/marginacion/data_dictionary_marginacion_imu_2020.md``.
+    ver ``references/marginacion/data_dictionary_marginacion_imu_2020.md``.
     """
     raw_path = RAW_DATA_DIR / f"imu_{MARGINACION_AGEB_YEAR}.csv"
     output_dir = INTERIM_DATA_DIR / "marginacion"
@@ -401,7 +401,7 @@ def download_marginacion_municipal_csvs(overwrite: bool = False):
     """Descarga los CSV municipales modernos (2010, 2015, 2020) de datos.gob.mx.
 
     Serie con esquema ``IM_YYYY/GM_YYYY/IMN_YYYY`` (ver
-    ``pendientes/marginacion/data_dictionary_marginacion_municipal.md``).
+    ``references/marginacion/data_dictionary_marginacion_municipal.md``).
     Los CSV son nacionales; se filtran a Sonora (``CVE_ENT=26``) y se guardan
     en ``data/interim/marginacion/``.
     """

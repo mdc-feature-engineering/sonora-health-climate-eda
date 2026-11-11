@@ -8,7 +8,7 @@
 
 | Capa | Notebook | Estado | Responsable |
 |------|----------|--------|-------------|
-| 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) + `pendientes/marginacion/` | ⚠️ **TODO CRÍTICO** — descarga implementada; falta geometría AGEB y validación | Compañeros |
+| 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) | ⚠️ **TODO CRÍTICO** — descarga implementada; falta geometría AGEB y validación | Compañeros |
 | 2. Clima (temp/lluvia) | `01_ingesta/1.0-conagua-temperatura.ipynb`, `1.1-conagua-lluvia.ipynb` | ✅ Implementado | — |
 | 3. Sequía | `01_ingesta/1.2-monitor-sequia.ipynb` | ✅ Implementado | — |
 | 4. Calidad del aire | `01_ingesta/1.4-calidad-aire.ipynb` | 🔴 **TODO CRÍTICO** — fuente sin confirmar (SINAICA / datos abiertos Sonora) | Compañeros |
@@ -22,10 +22,9 @@
 | `1.0-conagua-temperatura.ipynb` | Descarga e ingesta de temperatura media por estación (SMN/CONAGUA) | ✅ |
 | `1.1-conagua-lluvia.ipynb` | Descarga e ingesta de precipitación por estación (SMN/CONAGUA) | ✅ |
 | `1.2-monitor-sequia.ipynb` | Monitor de Sequía CONAGUA → formato tidy por año | ✅ |
-| `1.3-indice-marginacion.ipynb` | Índice de marginación — **template TODO** (trabajo parcial en `pendientes/marginacion/`) | ⚠️ TODO |
+| `1.3-indice-marginacion.ipynb` | Índice de marginación — **template TODO** | ⚠️ TODO |
 | `1.4-calidad-aire.ipynb` | PM2.5, PM10, O3 por estación — **esqueleto** | 🔴 TODO |
 | `1.5-enfermedades-respiratorias.ipynb` | IRAs, asma, EPOC, neumonías — **esqueleto** | 🔴 TODO |
-| `pendientes/marginacion/1.3-indice-marginacion.ipynb` | Marginación municipal/AGEB — **en desarrollo** | ⚠️ TODO |
 
 ### `02_eda/` — Fases B y C
 | Notebook | Descripción | Estado |
