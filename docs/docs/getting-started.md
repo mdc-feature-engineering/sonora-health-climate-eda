@@ -30,10 +30,10 @@ Requiere **Python 3.13** (`ydata-profiling` no es compatible con 3.14).
 
    - `notebooks/00_auto_eda/` — auto-EDA con `ydata-profiling`
      (genera `reports/auto_eda_report.html`; requiere el panel integrado).
-   - `notebooks/01_ingesta/` → `notebooks/02_eda/`.
+   - `notebooks/01_ingesta/` → `notebooks/02_procesamiento/` → `notebooks/03_eda/`.
 
    El índice completo está en `notebooks/README.md`. Los notebooks de
-   `02_eda/` incluyen templates del rúbrica (datos faltantes, outliers,
+   `03_eda/` incluyen templates del rúbrica (datos faltantes, outliers,
    relaciones, correlación, PCA/t-SNE) listos para llenar cuando exista el panel
    integrado. El template del reporte final está en
    `reports/reporte_final_template.md`.

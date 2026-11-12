@@ -33,23 +33,40 @@
 | `1.4-calidad-aire.ipynb` | PM2.5, PM10, O3 por estación — **esqueleto** | 🔴 TODO |
 | `1.5-enfermedades-respiratorias.ipynb` | IRAs confirmadas (Salud Sonora) → mensual Hermosillo | ✅ |
 
-### `02_eda/` — Integración y templates del rúbrica
+### `02_procesamiento/` — Limpieza y agregación por capa
+
+El número menor coincide con la libreta de ingesta de la misma capa (`2.1`
+es el complemento diario de clima, sin libreta de ingesta propia). Cada
+libreta revisa las transformaciones que aplica `panel.py` —las mismas que
+ejecuta `3.0`— y termina con una tabla de **decisiones de procesamiento**;
+un cambio decidido aquí se implementa en `panel.py` para que llegue al panel.
+
 | Notebook | Descripción | Estado |
 |----------|-------------|--------|
-| `2.0-integracion-espacial.ipynb` | Panel mensual integrado (`panel.build_panel()` → `panel_hermosillo.parquet`) | ✅ (nivel municipal; AGEB pendiente de geometría INEGI) |
-| `2.1-datos-faltantes.ipynb` | % faltantes, missingno, patrones temporales, imputación | 📝 Template (rúbrica: datos faltantes) |
-| `2.2-outliers.ipynb` | Outliers con ≥2 técnicas: IQR/Z-score, Isolation Forest, LOF | 📝 Template (rúbrica: anomalías) |
-| `2.3-relaciones-visualizacion.ipynb` | Series, scatter, pairplot y boxplots casos vs. exposición | 📝 Template (rúbrica: relaciones por visualización) |
-| `2.4-correlacion.ipynb` | Heatmaps Pearson/Spearman, correlación con variable objetivo | 📝 Template (rúbrica: correlación) |
-| `2.5-reduccion-dimensionalidad.ipynb` | PCA (scree, loadings) + t-SNE para visualización | 📝 Template (rúbrica: reducción de características) |
+| `2.0-procesamiento-temperatura-smn.ipynb` | TMed/TMax/TMin por estación → serie mensual de Hermosillo; centinelas, coherencia física, meses corruptos (dic-2015/16/17) | 📝 Template |
+| `2.1-procesamiento-calor-openmeteo.ipynb` | Open-Meteo diario → olas de calor (≥35 °C, P95, heat index) y métricas mensuales; contraste con SMN | 📝 Template |
+| `2.2-procesamiento-sequia.ipynb` | Monitor de Sequía quincenal → mensual (severidad media + moda); categorías sin mapeo y empates | 📝 Template |
+| `2.3-procesamiento-marginacion.ipynb` | IMM 2010/2015/2020: homologación de columnas e interpolación mensual | 📝 Template |
+| `2.4-procesamiento-calidad-aire.ipynb` | Plan horario → diario → mensual (suficiencia 75 %, O3 8 h, excedencias de norma) | 🔴 Pendiente de fuente |
+| `2.5-procesamiento-salud-ira.ipynb` | IRA semanal → mensual: calidad de registros, semanas faltantes, `n_semanas`, 2020 atípico | 📝 Template |
 
-Cada notebook de `02_eda/` termina con una celda **Consulta con el equipo**
+### `03_eda/` — Integración y templates del rúbrica
+| Notebook | Descripción | Estado |
+|----------|-------------|--------|
+| `3.0-integracion-espacial.ipynb` | Panel mensual integrado (`panel.build_panel()` → `panel_hermosillo.parquet`) | ✅ (nivel municipal; AGEB pendiente de geometría INEGI) |
+| `3.1-datos-faltantes.ipynb` | % faltantes, missingno, patrones temporales, imputación | 📝 Template (rúbrica: datos faltantes) |
+| `3.2-outliers.ipynb` | Outliers con ≥2 técnicas: IQR/Z-score, Isolation Forest, LOF | 📝 Template (rúbrica: anomalías) |
+| `3.3-relaciones-visualizacion.ipynb` | Series, scatter, pairplot y boxplots casos vs. exposición | 📝 Template (rúbrica: relaciones por visualización) |
+| `3.4-correlacion.ipynb` | Heatmaps Pearson/Spearman, correlación con variable objetivo | 📝 Template (rúbrica: correlación) |
+| `3.5-reduccion-dimensionalidad.ipynb` | PCA (scree, loadings) + t-SNE para visualización | 📝 Template (rúbrica: reducción de características) |
+
+Cada notebook de `03_eda/` termina con una celda **Consulta con el equipo**
 (rúbrica: consulta con los usuarios):
 
 | Checkpoint | Notebooks | Qué se decide |
 |------------|-----------|---------------|
-| 1 — Calidad de datos | `2.1`, `2.2` | Qué variables/periodos se conservan, imputan o excluyen |
-| 2 — Hallazgos exploratorios | `2.3`, `2.4`, `2.5` | Qué relaciones se profundizan en el plan |
+| 1 — Calidad de datos | `3.1`, `3.2` | Qué variables/periodos se conservan, imputan o excluyen |
+| 2 — Hallazgos exploratorios | `3.3`, `3.4`, `3.5` | Qué relaciones se profundizan en el plan |
 | 3 — Interpretación | reporte final | Si los hallazgos responden las preguntas de investigación |
 
 ### Plan (cuando estén todos los datos)

@@ -32,7 +32,7 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 - **Clima:** datos diarios de Open-Meteo agregados por mes (olas de calor ≥35 °C y p95, humedad relativa).
 - **Flags:** `mes_ola_calor_p95`, `mes_sequia`, `mes_ola_calor_p95_y_sequia`.
 - **Salud:** un mes suma 4 o 5 semanas (`n_semanas`); `casos_ira_por_semana` permite comparar meses.
-- **Cómo se genera:** `panel.build_panel()`; ver [`2.0-integracion-espacial.ipynb`](notebooks/02_eda/2.0-integracion-espacial.ipynb). Los años se ajustan en `config.py`.
+- **Cómo se genera:** `panel.build_panel()`; ver [`3.0-integracion-espacial.ipynb`](notebooks/03_eda/3.0-integracion-espacial.ipynb). Los años se ajustan en `config.py`.
 - **Calidad del aire:** pendiente de fuente.
 
 ### Alcance actual y próximos pasos
@@ -56,7 +56,8 @@ Por ahora el proyecto cubre la **ingesta** de las capas y el panel integrado, m�
 ├── notebooks
 │   ├── 00_auto_eda      <- Auto-EDA con ydata-profiling (reporte HTML)
 │   ├── 01_ingesta        <- Descarga/limpieza de las capas (aire pendiente; salud y panel implementados)
-│   └── 02_eda            <- 2.0 panel integrado ✅; templates del rúbrica (faltantes, outliers, relaciones, correlación, PCA/t-SNE)
+│   ├── 02_procesamiento  <- Limpieza, homologación y agregación mensual por capa (templates; aire pendiente)
+│   └── 03_eda            <- 3.0 panel integrado ✅; templates del rúbrica (faltantes, outliers, relaciones, correlación, PCA/t-SNE)
 │
 ├── pyproject.toml
 ├── references            <- Diccionarios de datos por fuente

@@ -159,12 +159,17 @@ Además hay flags mensuales listos para el análisis: `mes_calor_extremo`,
 
 #### Fase A: Ingesta, limpieza e integración (ETL)
 
+* **Procesamiento por capa:** limpieza (valores centinela, rangos
+  físicos, meses corruptos en la fuente), homologación de claves y
+  columnas y agregación a mensual de cada capa antes de integrar el
+  panel. Cada libreta registra sus decisiones de limpieza.
+  *(Libretas: `02_procesamiento/2.0` a `2.5`)*
 * **Análisis de datos faltantes:** cuantificación del porcentaje de
   faltantes por variable, identificación de patrones temporales (días o
   temporadas completas ausentes, p.ej. mantenimiento de estaciones) y
   definición de la estrategia de imputación por variable (interpolación
   temporal, media por estación, forward-fill o exclusión justificada).
-  *(Libreta: `02_eda/2.1-datos-faltantes.ipynb`)*
+  *(Libreta: `03_eda/3.1-datos-faltantes.ipynb`)*
 * Estandarización de claves geoespaciales (INEGI GEOID) y uniones
   espaciales (*spatial joins*) entre AGEBs y estaciones de medición.
 * **Detección de anomalías (outliers):** aplicación de **al menos dos
@@ -174,20 +179,20 @@ Además hay flags mensuales listos para el análisis: `mes_calor_extremo`,
   clasifican como *eventos reales* (olas de calor, picos de
   contaminación, brotes epidemiológicos) o *errores de datos*, y se
   documenta la decisión de tratamiento para cada uno.
-  *(Libreta: `02_eda/2.2-outliers.ipynb`)*
+  *(Libreta: `03_eda/3.2-outliers.ipynb`)*
 * **Relaciones por visualización:** series de casos vs. exposición,
   scatter por estación, pairplot y boxplots en meses con y sin ola de
   calor o sequía.
-  *(Libreta: `02_eda/2.3-relaciones-visualizacion.ipynb`)*
+  *(Libreta: `03_eda/3.3-relaciones-visualizacion.ipynb`)*
 * **Correlaciones de Pearson/Spearman:** heatmaps de correlación entre
   todas las variables numéricas del panel, correlación con la variable de
   respuesta (casos de IRA) y prueba de significancia; scatter plots de
   las relaciones más fuertes.
-  *(Libreta: `02_eda/2.4-correlacion.ipynb`)*
+  *(Libreta: `03_eda/3.4-correlacion.ipynb`)*
 * **Reducción de dimensionalidad para visualización:** **PCA** (scree
   plot, loadings) y **t-SNE** para explorar si los meses se agrupan por
   estación del año, marginación o intensidad de exposición.
-  *(Libreta: `02_eda/2.5-reduccion-dimensionalidad.ipynb`)*
+  *(Libreta: `03_eda/3.5-reduccion-dimensionalidad.ipynb`)*
 
 ### 3.2 Plan: próximos pasos (sin libreta todavía)
 
@@ -279,24 +284,24 @@ del proyecto en GitHub.
 - *Herramienta:* `ydata-profiling` (reporte HTML interactivo con
   estadísticas, distribuciones, correlaciones y faltantes).
 - *Entrada:* panel integrado `data/processed/panel_hermosillo.parquet`
-  (salida de `02_eda/2.0-integracion-espacial.ipynb`).
+  (salida de `03_eda/3.0-integracion-espacial.ipynb`).
 - *Salida:* `reports/auto_eda_report.html` (commiteado y enlazado desde
   `README.md`).
 - *Libreta:* `notebooks/00_auto_eda/0.0-auto-eda.ipynb`.
 
 ### 5.2 Libretas de análisis exploratorio
 
-Las libretas de `notebooks/02_eda/` cubren los aspectos del análisis
+Las libretas de `notebooks/03_eda/` cubren los aspectos del análisis
 exploratorio (ver el mapa aspecto → libreta en `notebooks/README.md`):
 
 | Aspecto | Libreta |
 |---------|---------|
-| Integración espacial/temporal del panel | `2.0-integracion-espacial.ipynb` |
-| Datos faltantes | `2.1-datos-faltantes.ipynb` |
-| Anomalías/outliers (≥2 técnicas) | `2.2-outliers.ipynb` |
-| Relaciones entre variables por visualización | `2.3-relaciones-visualizacion.ipynb` |
-| Correlación entre variables | `2.4-correlacion.ipynb` |
-| Reducción de características (PCA, t-SNE) | `2.5-reduccion-dimensionalidad.ipynb` |
+| Integración espacial/temporal del panel | `3.0-integracion-espacial.ipynb` |
+| Datos faltantes | `3.1-datos-faltantes.ipynb` |
+| Anomalías/outliers (≥2 técnicas) | `3.2-outliers.ipynb` |
+| Relaciones entre variables por visualización | `3.3-relaciones-visualizacion.ipynb` |
+| Correlación entre variables | `3.4-correlacion.ipynb` |
+| Reducción de características (PCA, t-SNE) | `3.5-reduccion-dimensionalidad.ipynb` |
 
 Univariado, rezagos (CCF), mapas coropléticos y GLM quedan
 como plan (sección 3.2) y todavía no tienen libreta.
@@ -312,7 +317,7 @@ los puntos de decisión**, no es un flujo lineal:
 - **Checkpoint 2 — Hallazgos exploratorios:** revisión de correlaciones
   para decidir qué relaciones se profundizan en las fases del plan
   (rezagos, GLM).
-Cada libreta de `02_eda/` termina con una celda *Consulta con el equipo*
+Cada libreta de `03_eda/` termina con una celda *Consulta con el equipo*
 para registrar fecha, participantes, hallazgo presentado y decisión.
 
 - **Checkpoint 3 — Interpretación:** validación de que los hallazgos
