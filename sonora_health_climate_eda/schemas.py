@@ -84,17 +84,18 @@ class TemperaturaEstacionSchema(BaseModel):
 
     @field_validator("*", mode="before")
     @classmethod
-    def normalize_missing_and_sentinels(cls, value):
+    def normalize_missing_and_sentinels(cls, value, info):
         if value is None or pd.isna(value):
             return None
         if str(value).strip().lower() in ["", "nan", "none", "null"]:
             return None
-        try:
-            val_num = float(value)
-            if val_num in [-99.9, -999.0, -99.0]:
-                return None
-        except (ValueError, TypeError):
-            pass
+        # Los valores centinela solo aplican a la temperatura, no a lon/lat
+        if info.field_name == "temp_promedio":
+            try:
+                if float(value) in [-99.9, -999.0, -99.0]:
+                    return None
+            except (ValueError, TypeError):
+                pass
         return value
 
     @field_validator("clave", "edo", "est", "archivo_origen", mode="before")
