@@ -11,10 +11,10 @@ REF_DIR = REFERENCES_DIR
 
 def make_sequia_conagua_data_dictionary():
     REF_DIR.mkdir(parents=True, exist_ok=True)
-    output_md = REF_DIR / "clima" / "data_dictionary_conagua_sequia.md"
+    output_md = REF_DIR / "climate" / "data_dictionary_conagua_sequia.md"
     output_md.parent.mkdir(parents=True, exist_ok=True)
 
-    sample_files = list(INTERIM_DATA_DIR.glob("sonora_sequia_*.csv"))
+    sample_files = list(INTERIM_DATA_DIR.glob("**/sonora_sequia_*.csv"))
 
     descriptions = {
         "Cve_Entidad": "Clave oficial de la entidad federativa.",
