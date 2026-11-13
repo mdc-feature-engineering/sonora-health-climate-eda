@@ -22,6 +22,8 @@ from sonora_health_climate_eda.config import (
     CONAGUA_TEMPERATURE_REFERER,
     DROUGHT_SEVERITY_MAP,
     INTERIM_DATA_DIR,
+    PANEL_END_YEAR,
+    PANEL_START_YEAR,
     RAW_DATA_DIR,
 )
 
@@ -33,7 +35,7 @@ app = typer.Typer()
 
 
 @app.command()
-def download_drought_data(start_year: int = 2015, end_year: int = 2021):
+def download_drought_data(start_year: int = PANEL_START_YEAR, end_year: int = PANEL_END_YEAR):
     """Procesa el archivo crudo de sequía de CONAGUA y genera un archivo Tidy por cada año."""
     raw_path = RAW_DATA_DIR / "MunicipiosSequia.xlsx"
     output_dir = INTERIM_DATA_DIR / "sonora_sequia"
@@ -110,7 +112,7 @@ def download_drought_data(start_year: int = 2015, end_year: int = 2021):
 
 
 @app.command()
-def download_temperature_data(start_year: int = 2015, end_year: int = 2021):
+def download_temperature_data(start_year: int = PANEL_START_YEAR, end_year: int = PANEL_END_YEAR):
     """Descarga los archivos mensuales de temperatura media (TMed) directamente en data/raw/."""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -124,7 +126,7 @@ def download_temperature_data(start_year: int = 2015, end_year: int = 2021):
     }
 
     # 3. Recorrido por años y meses
-    for current_year in range(start_year, end_year):
+    for current_year in range(start_year, end_year + 1):
         year_str = str(current_year)
         logger.info(f"--- Descarga de temperatura del año: {year_str} ---")
 
@@ -165,7 +167,9 @@ def download_temperature_data(start_year: int = 2015, end_year: int = 2021):
 
 
 @app.command()
-def download_temperature_extremes_data(start_year: int = 2015, end_year: int = 2021):
+def download_temperature_extremes_data(
+    start_year: int = PANEL_START_YEAR, end_year: int = PANEL_END_YEAR
+):
     """Descarga los resúmenes mensuales de temperatura máxima (TMax) y
     mínima (TMin) del SMN — proxy de calor extremo / ola de calor.
 
@@ -184,7 +188,7 @@ def download_temperature_extremes_data(start_year: int = 2015, end_year: int = 2
         ("TMax", "temperatura_max", "Tmax"),
         ("TMin", "temperatura_min", "Tmin"),
     ):
-        for current_year in range(start_year, end_year):
+        for current_year in range(start_year, end_year + 1):
             year_str = str(current_year)
             logger.info(f"--- {series} del año: {year_str} ---")
             year_folder = RAW_DATA_DIR / f"{suffix}_{year_str}"
@@ -289,7 +293,7 @@ def download_respiratory_health_data():
 
 
 @app.command()
-def data_ingestion_pipeline(start_year: int = 2015, end_year: int = 2021):
+def data_ingestion_pipeline(start_year: int = PANEL_START_YEAR, end_year: int = PANEL_END_YEAR):
     """Ejecuta la descarga de las capas disponibles en un solo paso."""
     logger.info("=== Iniciando pipeline de ingesta de datos ===")
 
