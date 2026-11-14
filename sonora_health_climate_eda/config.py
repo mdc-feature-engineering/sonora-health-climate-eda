@@ -8,7 +8,7 @@ Las cinco capas de datos del protocolo son:
 1. Índice de marginación (CONAPO/INEGI) — nivel AGEB preferido, municipal como fallback.
 2. Temperatura y clima (CONAGUA/SMN, estaciones REDNAMEC o reanálisis).
 3. Índice de sequía (Monitor de Sequía SMN/CONAGUA).
-4. Calidad del aire (PM2.5, PM10, O3 — SINAICA/REDNAMEC Sonora).
+4. Calidad del aire (PM2.5, PM10, O3 — RUOA-UNAM, observatorio ERNO Hermosillo).
 5. Enfermedades respiratorias (SINAVE/SSA — IRAs, asma, EPOC, neumonías).
 """
 
@@ -148,17 +148,43 @@ DROUGHT_SEVERITY_MAP = {
 # ---------------------------------------------------------------------------
 # Capa 4 — Calidad del aire (PM2.5, PM10, O3)
 # ---------------------------------------------------------------------------
-# TODO: Confirmar la fuente operativa para Hermosillo. Candidatos:
-#   - SINAICA (aire.cdmx no aplica; la red estatal de Sonora reporta al
-#     Sistema Nacional de Información de Calidad del Aire).
-#   - Datos abiertos del Gobierno del Estado de Sonora.
-#   - IMECA histórico por estación (si está publicado).
-# Definir endpoints/archivos una vez verificada la disponibilidad.
-AIR_QUALITY_SOURCES = {
-    "sinaica_sonora": None,  # Pendiente de confirmar endpoint/descarga
-    "estado_sonora_datos_abiertos": None,
-}
+# Fuente: Red Universitaria de Observatorios Atmosféricos (RUOA-UNAM),
+# Observatorio Atmosférico Hermosillo (ERNO; 29.0814 N, 110.9706 W).
+# Un CSV horario público por mes; verificado 2026-11: existen los 72 meses
+# 2015–2020. Hora local UTC-7 (Hermosillo no usa horario de verano).
+# Descartadas: SINAICA (la estación de Hermosillo no tiene datos) y
+# Open-Meteo Air Quality (empieza en 2022-08).
+RUOA_ERNO_URL_TEMPLATE = (
+    "https://ruoa.unam.mx/caire/erno/hora/{year}-{month:02d}-ERNO_hora_L1_caire.csv"
+)
+AIR_QUALITY_SOURCES = {"ruoa_erno": RUOA_ERNO_URL_TEMPLATE}
+AIR_QUALITY_RAW_DIR = RAW_DATA_DIR / "aire" / "ruoa_erno"
+AIR_QUALITY_INTERIM_DIR = INTERIM_DATA_DIR / "aire"
+
 AIR_QUALITY_POLLUTANTS = ["PM2.5", "PM10", "O3"]
+AIR_QUALITY_UNITS = {"PM2.5": "ug/m^3", "PM10": "ug/m^3", "O3": "ppb"}  # fila de unidades RUOA
+
+# Límite de detección inferido de los datos: los valores OK empiezan
+# exactamente en 4 µg/m³ (PM) y 1 ppb (O3) y los BDL quedan por debajo
+# (con ceros y negativos). Las horas BDL se sustituyen por la mitad.
+AIR_QUALITY_DETECTION_LIMITS = {"PM2.5": 4.0, "PM10": 4.0, "O3": 1.0}
+# O3 marcado OK por encima de este valor es un artefacto del equipo: mesetas
+# de ~400 ppb durante horas (2018-03-08/09, 2019-08-28/29); el P99.9 de la
+# serie es ~76 ppb.
+AIR_QUALITY_MAX_PLAUSIBLE = {"O3": 120.0}
+# PM2.5 es una fracción de PM10: una hora con PM2.5 > PM10 + tolerancia
+# (ambas OK) se descarta para PM2.5. La tolerancia absorbe el ruido entre equipos.
+AIR_QUALITY_PM25_PM10_TOLERANCE = 10.0
+# Suficiencia de información (75 %, criterio de las NOM de salud ambiental):
+# día con >= 18 de 24 horas, O3 8 h con >= 6 de 8 horas, mes con >= 75 % de días.
+AIR_QUALITY_MIN_COVERAGE = 0.75
+# Un día con >= 75 % de sus horas válidas en BDL se invalida: es la señal
+# plana en cero de un sensor fallando (p. ej. PM2.5 en 2019), no aire limpio.
+AIR_QUALITY_MAX_BDL_FRACTION = 0.75
+# Límites de las normas vigentes en 2015–2020. PM: promedio de 24 h,
+# NOM-025-SSA1-2014 (µg/m³). O3: máximo diario del promedio móvil de 8 h,
+# NOM-020-SSA1-2014 (0.070 ppm = 70 ppb; cotejar con el texto del DOF).
+AIR_QUALITY_NOM_LIMITS = {"PM2.5": 45.0, "PM10": 75.0, "O3": 70.0}
 
 # ---------------------------------------------------------------------------
 # Capa 5 — Enfermedades respiratorias (SINAVE / SSA)

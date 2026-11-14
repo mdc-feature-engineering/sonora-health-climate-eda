@@ -4,7 +4,7 @@ Capas (ver ``docs/docs/protocolo_eda.md``):
     1. Marginación (CONAPO/INEGI) — municipal implementado; AGEB pendiente.
     2. Clima (CONAGUA/SMN) — temperatura mensual por estación.
     3. Sequía (Monitor de Sequía SMN/CONAGUA).
-    4. Calidad del aire — stub pendiente de confirmar fuente.
+    4. Calidad del aire (RUOA-UNAM, observatorio ERNO) — CSV horarios por mes.
     5. Salud respiratoria — stub pendiente de confirmar fuente.
 """
 
@@ -17,6 +17,7 @@ import typer
 import urllib3
 
 from sonora_health_climate_eda.config import (
+    AIR_QUALITY_RAW_DIR,
     CONAGUA_BASE_URL,
     CONAGUA_DROUGHT_URL,
     CONAGUA_TEMPERATURE_REFERER,
@@ -25,6 +26,7 @@ from sonora_health_climate_eda.config import (
     PANEL_END_YEAR,
     PANEL_START_YEAR,
     RAW_DATA_DIR,
+    RUOA_ERNO_URL_TEMPLATE,
 )
 
 urllib3.disable_warnings(
@@ -266,16 +268,50 @@ def download_marginacion_municipal_csvs(overwrite: bool = False):
 
 
 @app.command()
-def download_air_quality_data():
-    """Descarga datos de calidad del aire (PM2.5, PM10, O3) — pendiente de fuente.
+def download_air_quality_data(
+    start_year: int = PANEL_START_YEAR,
+    end_year: int = PANEL_END_YEAR,
+    overwrite: bool = False,
+):
+    """Descarga los CSV horarios de calidad del aire de RUOA-ERNO (Hermosillo).
 
-    TODO: Confirmar fuente operativa para Hermosillo (SINAICA, datos abiertos
-    del estado de Sonora o IMECA histórico). Ver ``config.AIR_QUALITY_SOURCES``.
+    Guarda un archivo por mes, tal como lo publica RUOA, en
+    ``data/raw/aire/ruoa_erno/AAAA-MM-ERNO_hora_L1_caire.csv``. Los meses ya
+    descargados se omiten salvo ``--overwrite``. Para agregarlos a día y mes
+    ver ``sonora_health_climate_eda/aire.py``.
     """
-    logger.warning(
-        "La ingesta de calidad del aire aún no está implementada. "
-        "Ver config.AIR_QUALITY_SOURCES y docs/docs/protocolo_eda.md."
+    AIR_QUALITY_RAW_DIR.mkdir(parents=True, exist_ok=True)
+    saved, skipped, failed = 0, 0, []
+    for year in range(start_year, end_year + 1):
+        for month in range(1, 13):
+            url = RUOA_ERNO_URL_TEMPLATE.format(year=year, month=month)
+            path = AIR_QUALITY_RAW_DIR / url.rsplit("/", 1)[-1]
+            if path.exists() and not overwrite:
+                skipped += 1
+                continue
+            try:
+                res = requests.get(url, timeout=60)
+                res.raise_for_status()
+            except requests.RequestException as exc:
+                logger.warning(f"RUOA {year}-{month:02d}: {exc}")
+                failed.append(f"{year}-{month:02d}")
+                continue
+            # Una respuesta sin el encabezado de datos (p. ej. una página de
+            # error con código 200) no se guarda.
+            if b"\nTime," not in res.content[:4096]:
+                logger.warning(f"RUOA {year}-{month:02d}: la respuesta no es un CSV de RUOA.")
+                failed.append(f"{year}-{month:02d}")
+                continue
+            path.write_bytes(res.content)
+            saved += 1
+            time.sleep(0.5)  # no saturar el servidor de RUOA
+
+    logger.info(
+        f"RUOA-ERNO en {AIR_QUALITY_RAW_DIR.relative_to(RAW_DATA_DIR.parents[1])}: "
+        f"{saved} meses descargados, {skipped} ya existían."
     )
+    if failed:
+        logger.warning(f"RUOA-ERNO: {len(failed)} meses sin descargar: {', '.join(failed)}")
 
 
 @app.command()
@@ -303,16 +339,18 @@ def data_ingestion_pipeline(start_year: int = PANEL_START_YEAR, end_year: int = 
     logger.info("Paso 2/5: Descargando datos de temperatura media...")
     download_temperature_data(start_year, end_year)
 
-    logger.info("Capas pendientes (marginación, aire, salud)...")
+    logger.info("Paso 3/5: Descargando calidad del aire (RUOA-ERNO)...")
+    download_air_quality_data(start_year, end_year)
+
+    logger.info("Capas pendientes (marginación, salud)...")
     download_marginacion_ageb_data()
     download_marginacion_data()
     download_marginacion_municipal_csvs()
-    download_air_quality_data()
     download_respiratory_health_data()
 
     logger.warning(
-        "Pipeline completado con advertencias: las capas de marginación, "
-        "aire y salud están pendientes. Ver docs/docs/protocolo_eda.md."
+        "Pipeline completado con advertencias: las capas de marginación "
+        "y salud están pendientes. Ver docs/docs/protocolo_eda.md."
     )
 
 

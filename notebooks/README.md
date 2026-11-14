@@ -2,7 +2,8 @@
 
 > **Estado:** el panel mensual integrado (ene-2015 a dic-2020, Hermosillo)
 > ya está generado en `data/processed/panel_hermosillo.parquet` con 4 de 5
-> capas. Pendientes: **calidad del aire** (fuente sin confirmar) y la
+> capas. Pendientes: integrar **calidad del aire** al panel (series diaria y
+> mensual de RUOA-ERNO ya en `data/interim/aire/`) y la
 > **geometría AGEB** (INEGI) para el nivel intra-urbano. Ver
 > `docs/docs/protocolo_eda.md` para el detalle metodológico.
 
@@ -19,7 +20,7 @@
 | 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) | ⚠️ Ingesta pausada, pero CSV municipales 2010/2015/2020 + IMU 2020 ya están en `data/interim/` (usados por el panel); falta geometría AGEB INEGI | Compañeros |
 | 2. Clima (temperatura) | `01_ingesta/1.0-conagua-temperatura.ipynb` | ✅ Implementado | — |
 | 3. Sequía | `01_ingesta/1.2-monitor-sequia.ipynb` | ✅ Implementado | — |
-| 4. Calidad del aire | `01_ingesta/1.4-calidad-aire.ipynb` | 🔴 **TODO CRÍTICO** — fuente sin confirmar (SINAICA / datos abiertos Sonora) | Compañeros |
+| 4. Calidad del aire | `01_ingesta/1.4-calidad-aire.ipynb` | ✅ Implementado — RUOA-UNAM, observatorio ERNO (horario 2015–2020) → diario y mensual en `02_procesamiento/2.4`; falta integrarlo al panel | Compañeros |
 | 5. Salud respiratoria | `01_ingesta/1.5-enfermedades-respiratorias.ipynb` | ✅ Implementado — casos confirmados de IRA (Salud Sonora 2010–2020), semanal → mensual vía `panel.health_ira_monthly()` | — |
 
 ## Orden de ejecución sugerido
@@ -30,7 +31,7 @@
 | `1.0-conagua-temperatura.ipynb` | Descarga e ingesta de temperatura media por estación (SMN/CONAGUA) | ✅ |
 | `1.2-monitor-sequia.ipynb` | Monitor de Sequía CONAGUA → formato tidy por año | ✅ |
 | `1.3-indice-marginacion.ipynb` | Índice de marginación — **template TODO** | ⚠️ TODO |
-| `1.4-calidad-aire.ipynb` | PM2.5, PM10, O3 por estación — **esqueleto** | 🔴 TODO |
+| `1.4-calidad-aire.ipynb` | PM2.5, PM10, O3 horarios de RUOA-ERNO → tabla horaria sin limpiar | ✅ |
 | `1.5-enfermedades-respiratorias.ipynb` | IRAs confirmadas (Salud Sonora) → mensual Hermosillo | ✅ |
 
 ### `02_procesamiento/` — Limpieza y agregación por capa
@@ -47,7 +48,7 @@ un cambio decidido aquí se implementa en `panel.py` para que llegue al panel.
 | `2.1-procesamiento-calor-openmeteo.ipynb` | Open-Meteo diario → olas de calor (≥35 °C, P95, heat index) y métricas mensuales; contraste con SMN | 📝 Template |
 | `2.2-procesamiento-sequia.ipynb` | Monitor de Sequía quincenal → mensual (severidad media + moda); categorías sin mapeo y empates | 📝 Template |
 | `2.3-procesamiento-marginacion.ipynb` | IMM 2010/2015/2020: homologación de columnas e interpolación mensual | 📝 Template |
-| `2.4-procesamiento-calidad-aire.ipynb` | Plan horario → diario → mensual (suficiencia 75 %, O3 8 h, excedencias de norma) | 🔴 Pendiente de fuente |
+| `2.4-procesamiento-calidad-aire.ipynb` | Limpieza horaria (banderas, BDL, artefactos) → diario → mensual (suficiencia 75 %, O3 8 h, días sobre la NOM) | ✅ |
 | `2.5-procesamiento-salud-ira.ipynb` | IRA semanal → mensual: calidad de registros, semanas faltantes, `n_semanas`, 2020 atípico | 📝 Template |
 
 ### `03_eda/` — Integración y templates del rúbrica
