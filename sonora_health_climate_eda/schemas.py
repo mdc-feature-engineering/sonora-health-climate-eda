@@ -201,9 +201,60 @@ class MarginacionAgebSchema(DatasetSchema):
             return None
 
 
+class InfeccionesRespiratoriasSonoraSchema(DatasetSchema):
+    """Schema for the SUIVE epidemiological respiratory dataset for Sonora."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    clave_municipio: int | None = Field(default=None, ge=1, le=72)
+    municipio: str | None = None
+    clave_entidad: int | None = Field(default=None, ge=1)
+    anio: int | None = Field(default=None, ge=2010, le=2020)
+    semana: int | None = Field(default=None, ge=1, le=53)
+    genero: str | None = None
+    grupo_edad: str | None = None
+    clave_enfermedad: str | None = None
+    clues: str | None = None
+    casos: int | None = Field(default=None, ge=0)
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def normalize_missing_values(cls, value):
+        # Si es None, NaN de pandas o string vacío, retorna None
+        if value is None or pd.isna(value) or str(value).strip() == "":
+            return None
+        return value
+
+    @field_validator(
+        "municipio", "genero", "grupo_edad", "clave_enfermedad", "clues", mode="before"
+    )
+    @classmethod
+    def convert_text_fields(cls, value):
+        if value is None or pd.isna(value) or str(value).strip() == "":
+            return None
+        # Opcional: estandarizar municipio a mayúsculas si lo deseas
+        cleaned = str(value).strip()
+        if cls.__name__ == "municipio":
+            return cleaned.upper()
+        return cleaned
+
+    @field_validator(
+        "clave_municipio", "clave_entidad", "anio", "semana", "casos", mode="before"
+    )
+    @classmethod
+    def convert_numeric_fields(cls, value):
+        if value is None or pd.isna(value) or str(value).strip() == "":
+            return None
+        try:
+            return int(float(value))  # Maneja valores decimales residuales tipo "30.0" desde pandas
+        except (ValueError, TypeError):
+            return None
+
+
 __all__ = [
     "DatasetSchema",
     "MarginacionAgebSchema",
     "SequiaSonoraSchema",
     "TemperaturaEstacionSchema",
+    "InfeccionesRespiratoriasSonoraSchema",
 ]

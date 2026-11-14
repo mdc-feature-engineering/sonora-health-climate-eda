@@ -375,6 +375,38 @@ def drought_hermosillo() -> pd.DataFrame:
     out = out.merge(modal, on="fecha_mes", how="left")
     return out.sort_values("fecha_mes").reset_index(drop=True)
 
+def drought_hermosillo_weekly() -> pd.DataFrame:
+    """Agrega el Monitor de Sequía (quincenal) a semana epidemiológica.
+    
+    ``severidad_promedio`` = media de ``severidad_num`` (0–5) de las
+    quincenas de la semana; ``categoria_sequia`` = categoría modal.
+    """
+    df = _drought_records_hermosillo()
+    
+    # 1. Asegurar formato de fecha y filtro de años
+    df["fecha"] = pd.to_datetime(df["fecha"])
+    df["fecha_semana"] = df["fecha"].dt.to_period("W-SUN").dt.start_time
+    df = df[(df["fecha"].dt.year >= PANEL_START_YEAR) & (df["fecha"].dt.year <= PANEL_END_YEAR)].copy()
+
+    # 2. Calcular severidad promedio
+    g = df.groupby("fecha_semana")
+    out = g["severidad_num"].mean().rename("severidad_sequia").reset_index()
+
+    # 3. Limpiar nulos/vacíos en categoría de sequía asegurando que se mapeen como Normal
+    df["categoria_sequia"] = df["categoria_sequia"].fillna("Normal").replace("", "Normal")
+
+    # 4. CORRECCIÓN EN LA MODA: Ordenar por semana Y por frecuencia (n) descendente
+    modal = (
+        df.groupby(["fecha_semana", "categoria_sequia"], dropna=False)
+        .size()
+        .reset_index(name="n")
+        .sort_values(["fecha_semana", "n"], ascending=[True, False]) # <--- ¡Clave corregida aquí!
+        .drop_duplicates(subset=["fecha_semana"])
+        [["fecha_semana", "categoria_sequia"]]
+    )
+    
+    out = out.merge(modal, on="fecha_semana", how="left")
+    return out.sort_values("fecha_semana").reset_index(drop=True)
 
 def marginacion_hermosillo() -> pd.DataFrame:
     """Interpolación mensual del IMN municipal entre censos 2015 y 2020.
@@ -455,12 +487,12 @@ def health_ira_weekly() -> pd.DataFrame:
     out = (
         df.groupby(["fecha_semana", "anio", "semana"], as_index=False)["casos"]
         .sum()
-        .rename(columns={"casos": "casos_ira"})
+        .rename(columns={"casos": "casos_ira_total"})
         .sort_values("fecha_semana")
         .reset_index(drop=True)
     )
     logger.info(
-        f"Salud IRA Hermosillo: {len(out)} semanas, {int(out['casos_ira'].sum())} casos en ventana."
+        f"Salud IRA Hermosillo: {len(out)} semanas, {int(out['casos_ira_total'].sum())} casos en ventana."
     )
     return out
 
@@ -477,11 +509,11 @@ def health_ira_monthly() -> pd.DataFrame:
     weekly["fecha_mes"] = weekly["fecha_semana"].dt.to_period("M").dt.to_timestamp()
     out = (
         weekly.groupby("fecha_mes", as_index=False)
-        .agg(casos_ira=("casos_ira", "sum"), n_semanas=("fecha_semana", "nunique"))
+        .agg(casos_ira=("casos_ira_total", "sum"), n_semanas=("fecha_semana", "nunique"))
         .sort_values("fecha_mes")
         .reset_index(drop=True)
     )
-    out["casos_ira_por_semana"] = out["casos_ira"] / out["n_semanas"]
+    out["casos_ira_total"] = out["casos_ira"] / out["n_semanas"]
     return out
 
 
