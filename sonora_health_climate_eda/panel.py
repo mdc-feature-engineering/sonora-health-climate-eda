@@ -265,6 +265,21 @@ def openmeteo_hermosillo_monthly() -> pd.DataFrame:
     return _aggregate_openmeteo(daily, "fecha_mes", "mes")
 
 
+def openmeteo_hermosillo_weekly() -> pd.DataFrame:
+    """Agrega la serie diaria Open-Meteo a semana epidemiológica.
+
+    ``fecha_semana`` es el domingo de inicio de la semana (convención
+    SINAVE/MMWR, la misma de ``health_ira_weekly``), para poder unir ambas
+    tablas. Mismas métricas que la versión mensual, con sufijo ``_sem``.
+    La primera y la última semana de la serie pueden estar incompletas.
+    """
+    daily = _openmeteo_daily_flags()
+    # weekday(): lunes=0 … domingo=6 → días que hay que retroceder hasta el domingo
+    days_since_sunday = (daily["fecha"].dt.weekday + 1) % 7
+    daily["fecha_semana"] = daily["fecha"] - pd.to_timedelta(days_since_sunday, unit="D")
+    return _aggregate_openmeteo(daily, "fecha_semana", "sem")
+
+
 def climate_hermosillo() -> pd.DataFrame:
     """Promedia la temperatura de las estaciones de Hermosillo.
 
