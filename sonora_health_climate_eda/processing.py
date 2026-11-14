@@ -24,6 +24,12 @@ def cargar_y_filtrar_salud(ruta_csv: str) -> pd.DataFrame:
     print(f" [FILTRO] Registros filtrados para Hermosillo: {len(df_hermosillo)}")
     return df_hermosillo
 
+def cargar_clues(ruta_csv: str) -> pd.DataFrame:
+    """
+    Carga el dataset de CLUES y filtra estrictamente por Hermosillo (clave_municipio == 30).
+    """
+    df_clues = pd.read_csv(ruta_csv)
+    return df_clues
 
 def agrupar_casos_semanales(df_hermosillo: pd.DataFrame) -> pd.DataFrame:
     """

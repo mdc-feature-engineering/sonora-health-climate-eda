@@ -28,7 +28,7 @@ recorte de Hermosillo (`clave_municipio = 30`) del archivo de Sonora
 | `semana` | int | Semana epidemiológica (SE) del año, 1–53. |
 | `genero` | str | `Masculino` / `Femenino`. |
 | `grupo_edad` | str | Grupo quinquenal de edad (ej. `De 00 años`, `De 05 a 09 años`). |
-| `clave_enfermedad` | str | Grupo de diagnóstico **CIE-10** del formato SUIVE (ver sección siguiente). En este archivo solo aparece `J00-J06, J20, J21 EXCEPTO J02.0 Y J03.0` = **Infecciones respiratorias agudas (IRA)**. Equivale al `cve_diagno = 16` de `config.RESPIRATORY_DIAGNOSIS_IDS`. |
+| `clave_enfermedad` | str | Grupo de diagnóstico **CIE-10** del formato SUIVE (ver sección siguiente). En este archivo solo aparece `J00-J06, J20, J21 EXCEPTO J02.0 Y J03.0` = **Infecciones respiratorias agudas (IRA) VIRUS**. Equivale al `cve_diagno = 16` de `config.RESPIRATORY_DIAGNOSIS_IDS`. |
 | `clues` | str | Clave Única de Establecimientos de Salud (unidad notificante). |
 | `casos` | int | **Casos confirmados** de IRA en el periodo/unidad. |
 
@@ -62,16 +62,11 @@ desagregados de las demás claves del formato SUIVE.
 
 ## Notas
 
-> ⚠️ **Pendiente de validación contra fuente oficial.** Este diccionario se
-> construyó a partir de los datos recibidos (sin diccionario propio) y de la
-> estructura conocida del formato SUIVE. Los siguientes puntos son
-> **inferidos** y deben confirmarse con quien compartió los archivos o con
-> la Secretaría de Salud de Sonora:
->
-> - La consulta/criterio exacto que generó los CSV.
-
-**Supuesto del proyecto:** `casos` se interpreta como **casos
-confirmados** de IRA (inferido; no confirmado por la fuente).
+> **Advertencias sobre el registro de casos.**
+> - Retraso en la captura (Reporting lag): El día que aparece registrado el dato no siempre es el día real en que la persona fue a consulta; a veces los reportes se actualizan días o semanas después.
+> - El "efecto vacaciones": Cuidado con las caídas repentinas de casos en periodos vacacionales o fines de semana largos. Muchas veces baja la asistencia a los consultorios, pero eso no significa necesariamente que la gente esté más sana, sino que acuden menos a revisarse.
+> - Sesgo por clínicas privadas: Gran parte de la atención ocurre en consultorios particulares, cuyas dinámicas y tiempos de reporte son distintos a los del sistema público.
+> - El factor COVID: Hay que tener presente que las olas o picos de la pandemia alteraron fuertemente la forma en que la gente buscaba atención médica y cómo se saturaban (o evitaban) las clínicas, lo que puede distorsionar la tendencia general.
 
 ### Confirmado con quien compartió los datos
 

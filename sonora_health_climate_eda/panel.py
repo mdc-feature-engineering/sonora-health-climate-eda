@@ -20,6 +20,7 @@ Salida: ``data/processed/panel_hermosillo.parquet``.
 from loguru import logger
 import numpy as np
 import pandas as pd
+from sonora_health_climate_eda.aire import build_daily, build_monthly
 
 from sonora_health_climate_eda.config import (
     CLIMATE_STATION_IDS,
@@ -471,7 +472,7 @@ def health_ira_weekly() -> pd.DataFrame:
     Se colapsan ``genero``, ``grupo_edad`` y ``clues``. ``fecha_semana`` es
     la fecha de inicio de la semana (``_se_start``).
     """
-    path = RAW_DATA_DIR / "salud/enf_resp_sonora_2010_2020.csv"
+    path = INTERIM_DATA_DIR / "salud_ira_hermosillo.csv"
     df = pd.read_csv(
         path,
         usecols=["clave_municipio", "municipio", "anio", "semana", "casos"],
@@ -516,16 +517,16 @@ def health_ira_monthly() -> pd.DataFrame:
     out["casos_ira_total"] = out["casos_ira"] / out["n_semanas"]
     return out
 
-
-def build_panel() -> pd.DataFrame:
+def build_panel_monthly() -> pd.DataFrame:
     """Construye el panel mensual integrado y lo guarda en processed/."""
-    climate = climate_hermosillo()
-    drought = drought_hermosillo()
-    margin = marginacion_hermosillo()
-    health = health_ira_monthly()
-    om = openmeteo_hermosillo_monthly()
+    #Obtener datos de folder processed
+    air_quality = pd.read_parquet(PROCESSED_DATA_DIR / "air_quality_hermosillo.parquet")
+    drought = pd.read_parquet(PROCESSED_DATA_DIR / "drought_hermosillo.parquet")
+    margin = pd.read_parquet(PROCESSED_DATA_DIR / "marginacion_hermosillo.parquet")
+    health = pd.read_parquet(PROCESSED_DATA_DIR / "health_ira_monthly.parquet")
+    om = pd.read_parquet(PROCESSED_DATA_DIR / "openmeteo_hermosillo_monthly.parquet")
 
-    panel = climate.merge(drought, on="fecha_mes", how="outer")
+    panel = air_quality.merge(drought, on="fecha_mes", how="outer")
     panel = panel.merge(margin, on="fecha_mes", how="outer")
     panel = panel.merge(health, on="fecha_mes", how="outer")
     panel = panel.merge(om, on="fecha_mes", how="left")
@@ -559,4 +560,50 @@ def build_panel() -> pd.DataFrame:
     PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
     panel.to_parquet(out_path, index=False)
     logger.success(f"Panel guardado en {out_path} ({len(panel)} meses).")
+    return panel
+
+def build_panel_weekly() -> pd.DataFrame:
+    """Construye el panel semanal integrado y lo guarda en processed/."""
+    #Obtener datos de folder processed
+    air_quality = pd.read_parquet(PROCESSED_DATA_DIR / "air_quality_hermosillo.parquet")
+    drought = pd.read_parquet(PROCESSED_DATA_DIR / "drought_hermosillo_weekly.parquet")
+    margin = pd.read_parquet(PROCESSED_DATA_DIR / "marginacion_hermosillo.parquet")
+    health = pd.read_parquet(PROCESSED_DATA_DIR / "health_ira_weekly.parquet")
+    om = pd.read_parquet(PROCESSED_DATA_DIR / "openmeteo_hermosillo_weekly.parquet")
+
+
+    panel = air_quality.merge(drought, on="fecha_semana", how="outer")
+    panel = panel.merge(margin, on="fecha_semana", how="outer")
+    panel = panel.merge(health, on="fecha_semana", how="outer")
+    panel = panel.merge(om, on="fecha_semana", how="left")
+    panel = panel.sort_values("fecha_semana").reset_index(drop=True)
+
+    expected = pd.date_range(f"{PANEL_START_YEAR}-01-01", f"{PANEL_END_YEAR}-12-01", freq="W-SUN")
+    panel = panel.set_index("fecha_semana").reindex(expected).rename_axis("fecha_semana").reset_index()
+
+    # Flags de exposición extrema (umbrales en config.py).
+    panel["semana_calor_extremo"] = (panel["temp_max_media_c"] >= HEAT_EXTREME_TMAX_C).astype(
+        "boolean"
+    )
+    panel["semana_sequia"] = (panel["severidad_sequia"] >= DROUGHT_EXTREME_MIN_SEVERITY).astype(
+        "boolean"
+    )
+    panel["semana_extremo_conjunto"] = (panel["semana_calor_extremo"] & panel["semana_sequia"]).astype(
+        "boolean"
+    )
+    # Ola de calor formal por umbral fijo (≥35 °C, ≥3 días) y por umbral
+    # adaptado P95 estacional (Tmax+Tmin superan su P95 del mes calendario,
+    # ≥3 días consecutivos) — ambas desde Open-Meteo diario.
+    panel["semana_ola_calor"] = (panel["n_olas_calor"] > 0).astype("boolean")
+    panel["semana_ola_calor_p95"] = (panel["n_olas_calor_p95"] > 0).astype("boolean")
+    panel["semana_ola_calor_p95_y_sequia"] = (
+        panel["semana_ola_calor_p95"] & panel["semana_sequia"]
+    ).astype("boolean")
+    panel["semana_calor_humedo"] = (panel["n_olas_calor_humedo"] > 0).astype("boolean")
+    panel["anio_atipico"] = panel["fecha_semana"].dt.year.isin(HEALTH_ANOMALY_YEARS).astype("boolean")
+
+    out_path = PROCESSED_DATA_DIR / "panel_hermosillo_semanal.parquet"
+    PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    panel.to_parquet(out_path, index=False)
+    logger.success(f"Panel semanal guardado en {out_path} ({len(panel)} semanas).")
     return panel
