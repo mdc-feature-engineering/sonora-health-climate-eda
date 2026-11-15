@@ -1,6 +1,6 @@
 """Construcción del panel mensual integrado (Fase A del protocolo EDA).
 
-Une las cuatro capas disponibles para Hermosillo en una granularidad
+Une las capas disponibles para Hermosillo en una granularidad
 mensual común (ene-2015 a dic-2020 por defecto):
 
 1. Clima — resúmenes mensuales SMN/CONAGUA (temperatura media, máxima y
@@ -13,6 +13,8 @@ mensual común (ene-2015 a dic-2020 por defecto):
 4. Salud — casos confirmados de IRA (CIE-10 J00-J06/J20/J21 menos
    J02.0/J03.0), semanal epidemiológica → mensual, desde los CSV de la
    Secretaría de Salud de Sonora en ``data/raw/salud/``.
+5. Calidad del aire — PM2.5, PM10 y O3 de RUOA-ERNO, datasets limpios semanal
+   y mensual de ``aire.py`` en ``data/processed/aire/`` (notebook 2.4).
 
 Salida: ``data/processed/panel_hermosillo.parquet``.
 """
@@ -20,8 +22,9 @@ Salida: ``data/processed/panel_hermosillo.parquet``.
 from loguru import logger
 import numpy as np
 import pandas as pd
-from sonora_health_climate_eda.aire import build_daily, build_monthly
 
+from sonora_health_climate_eda.aire import MONTHLY_PATH as AIR_MONTHLY_PATH
+from sonora_health_climate_eda.aire import WEEKLY_PATH as AIR_WEEKLY_PATH
 from sonora_health_climate_eda.config import (
     CLIMATE_STATION_IDS,
     DROUGHT_EXTREME_MIN_SEVERITY,
@@ -522,7 +525,8 @@ def health_ira_monthly() -> pd.DataFrame:
 def build_panel_monthly() -> pd.DataFrame:
     """Construye el panel mensual integrado y lo guarda en processed/."""
     #Obtener datos de folder processed
-    air_quality = pd.read_parquet(PROCESSED_DATA_DIR / "air_quality_hermosillo.parquet")
+    # Calidad del aire: dataset limpio mensual de aire.py (notebook 2.4)
+    air_quality = pd.read_csv(AIR_MONTHLY_PATH, parse_dates=["fecha_mes"])
     drought = pd.read_parquet(PROCESSED_DATA_DIR / "drought_hermosillo.parquet")
     margin = pd.read_parquet(PROCESSED_DATA_DIR / "marginacion_hermosillo.parquet")
     health = pd.read_parquet(PROCESSED_DATA_DIR / "health_ira_monthly.parquet")
@@ -536,6 +540,10 @@ def build_panel_monthly() -> pd.DataFrame:
 
     expected = pd.date_range(f"{PANEL_START_YEAR}-01-01", f"{PANEL_END_YEAR}-12-01", freq="MS")
     panel = panel.set_index("fecha_mes").reindex(expected).rename_axis("fecha_mes").reset_index()
+    # Los merges outer pasan las banderas de aire a object; un mes sin fila de aire no
+    # se interpoló, así que vuelve a bool con False.
+    air_flags = panel.columns[panel.columns.str.endswith("_interpolado")]
+    panel[air_flags] = panel[air_flags].eq(True)
 
     # Flags de exposición extrema (umbrales en config.py).
     panel["mes_calor_extremo"] = (panel["temp_max_media_c"] >= HEAT_EXTREME_TMAX_C).astype(
@@ -567,7 +575,12 @@ def build_panel_monthly() -> pd.DataFrame:
 def build_panel_weekly() -> pd.DataFrame:
     """Construye el panel semanal integrado y lo guarda en processed/."""
     #Obtener datos de folder processed
-    air_quality = pd.read_parquet(PROCESSED_DATA_DIR / "air_quality_hermosillo.parquet")
+    # Calidad del aire: dataset limpio semanal de aire.py (notebook 2.4). anio y
+    # semana ya vienen con IRA (mismas semanas epidemiológicas) y duplicarlas daría
+    # anio_x / anio_y; n_dias solo describe la tabla de aire.
+    air_quality = pd.read_csv(AIR_WEEKLY_PATH, parse_dates=["fecha_semana"]).drop(
+        columns=["anio", "semana", "n_dias"]
+    )
     drought = pd.read_parquet(PROCESSED_DATA_DIR / "drought_hermosillo_weekly.parquet")
     margin = pd.read_parquet(PROCESSED_DATA_DIR / "marginacion_hermosillo.parquet")
     health = pd.read_parquet(PROCESSED_DATA_DIR / "health_ira_weekly.parquet")
@@ -582,6 +595,10 @@ def build_panel_weekly() -> pd.DataFrame:
 
     expected = pd.date_range(f"{PANEL_START_YEAR}-01-01", f"{PANEL_END_YEAR}-12-01", freq="W-SUN")
     panel = panel.set_index("fecha_semana").reindex(expected).rename_axis("fecha_semana").reset_index()
+    # Los merges outer pasan las banderas de aire a object; una semana sin fila de aire
+    # no se interpoló, así que vuelve a bool con False.
+    air_flags = panel.columns[panel.columns.str.endswith("_interpolado")]
+    panel[air_flags] = panel[air_flags].eq(True)
 
     # Flags de exposición extrema (umbrales en config.py).
     panel["semana_calor_extremo"] = (panel["temp_max_media_c"] >= HEAT_EXTREME_TMAX_C).astype(

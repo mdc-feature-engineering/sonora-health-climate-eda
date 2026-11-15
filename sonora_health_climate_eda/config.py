@@ -159,7 +159,8 @@ RUOA_ERNO_URL_TEMPLATE = (
 )
 AIR_QUALITY_SOURCES = {"ruoa_erno": RUOA_ERNO_URL_TEMPLATE}
 AIR_QUALITY_RAW_DIR = RAW_DATA_DIR / "aire" / "ruoa_erno"
-AIR_QUALITY_INTERIM_DIR = INTERIM_DATA_DIR / "aire"
+AIR_QUALITY_INTERIM_DIR = INTERIM_DATA_DIR / "aire"  # tablas horaria y diaria
+AIR_QUALITY_PROCESSED_DIR = PROCESSED_DATA_DIR / "aire"  # datasets limpios semanal y mensual
 
 AIR_QUALITY_POLLUTANTS = ["PM2.5", "PM10", "O3"]
 AIR_QUALITY_UNITS = {"PM2.5": "ug/m^3", "PM10": "ug/m^3", "O3": "ppb"}  # fila de unidades RUOA
@@ -176,15 +177,41 @@ AIR_QUALITY_MAX_PLAUSIBLE = {"O3": 120.0}
 # (ambas OK) se descarta para PM2.5. La tolerancia absorbe el ruido entre equipos.
 AIR_QUALITY_PM25_PM10_TOLERANCE = 10.0
 # Suficiencia de información (75 %, criterio de las NOM de salud ambiental):
-# día con >= 18 de 24 horas, O3 8 h con >= 6 de 8 horas, mes con >= 75 % de días.
+# día con >= 18 de 24 horas, O3 8 h con >= 6 de 8 horas, semana con >= 6 de
+# 7 días y mes con >= 75 % de días.
 AIR_QUALITY_MIN_COVERAGE = 0.75
 # Un día con >= 75 % de sus horas válidas en BDL se invalida: es la señal
 # plana en cero de un sensor fallando (p. ej. PM2.5 en 2019), no aire limpio.
 AIR_QUALITY_MAX_BDL_FRACTION = 0.75
+# Huecos cortos que se rellenan por interpolación lineal en las tablas semanal
+# y mensual (notebook 2.4): al borrar 1–2 semanas con dato y reconstruirlas,
+# el error es de 12–16 % de la media. Los huecos más largos quedan en NaN.
+AIR_QUALITY_MAX_INTERP_WEEKS = 2
+AIR_QUALITY_MAX_INTERP_MONTHS = 1
 # Límites de las normas vigentes en 2015–2020. PM: promedio de 24 h,
 # NOM-025-SSA1-2014 (µg/m³). O3: máximo diario del promedio móvil de 8 h,
 # NOM-020-SSA1-2014 (0.070 ppm = 70 ppb; cotejar con el texto del DOF).
 AIR_QUALITY_NOM_LIMITS = {"PM2.5": 45.0, "PM10": 75.0, "O3": 70.0}
+# Índice AIRE Y SALUD, NOM-172-SEMARNAT-2019 (DOF 20/11/2019, tablas 4–6 y 11).
+# Cada lista da los límites superiores, inclusivos, de Buena, Aceptable, Mala y
+# Muy mala; arriba del último es Extremadamente mala. La NOM clasifica cada hora
+# (PM con el promedio móvil ponderado de 12 h); aquí se clasifica cada día con su
+# métrica diaria: PM con el promedio de 24 h y O3 con la peor de sus categorías
+# de 1 h y de 8 h. El límite de "Aceptable" es el de AIR_QUALITY_NOM_LIMITS, así
+# que en PM un día "Mala o peor" es un día sobre la NOM. Se usan las bandas de
+# 2019 y no las de la NOM-172-SEMARNAT-2023 (más estrictas y por fases) porque
+# coinciden con las normas vigentes en 2015–2020.
+AIR_QUALITY_CATEGORIES = ["Buena", "Aceptable", "Mala", "Muy mala", "Extremadamente mala"]
+AIR_QUALITY_INDEX_BANDS = {
+    "PM2.5": [25, 45, 79, 147],  # µg/m³, promedio de 24 h
+    "PM10": [50, 75, 155, 235],  # µg/m³, promedio de 24 h
+    "O3_1h": [51, 95, 135, 175],  # ppb (0.051–0.175 ppm), máximo horario del día
+    "O3_8h": [51, 70, 92, 114],  # ppb (0.051–0.114 ppm), máximo del promedio móvil de 8 h
+}
+# Colores oficiales de las categorías (tabla 11): verde, amarillo, naranja, rojo, morado
+AIR_QUALITY_CATEGORY_COLORS = dict(
+    zip(AIR_QUALITY_CATEGORIES, ["#00e400", "#ffff00", "#ff7e00", "#ff0000", "#8f3f97"])
+)
 
 # ---------------------------------------------------------------------------
 # Capa 5 — Enfermedades respiratorias (SINAVE / SSA)

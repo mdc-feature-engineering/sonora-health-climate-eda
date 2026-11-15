@@ -22,7 +22,7 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 | 1 | Índice de marginación | CONAPO / INEGI (municipal 2010/2015/2020 en `data/interim/`; AGEB IMU 2020 disponible sin geometría) | Datos en interim; ingesta pausada (stubs) |
 | 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) | Disponible — descarga 2015–2020 |
 | 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA (quincenal → mensual) | Disponible — 2015–2020 |
-| 4 | Calidad del aire (PM2.5, PM10, O3) | RUOA-UNAM, observatorio ERNO Hermosillo (horario → diario y mensual) | Disponible 2015–2020 (PM2.5 sin datos válidos 2019–2020); falta integrarla al panel |
+| 4 | Calidad del aire (PM2.5, PM10, O3) | RUOA-UNAM, observatorio ERNO Hermosillo (horario → diario → semanal y mensual) | Disponible 2015–2020 (PM2.5 sin datos válidos desde jun-2018; jun–nov 2018 sin ningún contaminante); falta integrarla al panel |
 | 5 | Enfermedades respiratorias | Salud Sonora/SUIVE — casos confirmados de IRA, semanal × municipio × sexo × edad, 2010–2020 (`data/raw/salud/`) | Disponible — agregado a mensual |
 
 ### Panel integrado
@@ -33,7 +33,7 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 - **Flags:** `mes_ola_calor_p95`, `mes_sequia`, `mes_ola_calor_p95_y_sequia`.
 - **Salud:** un mes suma 4 o 5 semanas (`n_semanas`); `casos_ira_por_semana` permite comparar meses.
 - **Cómo se genera:** `panel.build_panel()`; ver [`3.0-integracion-espacial.ipynb`](notebooks/03_eda/3.0-integracion-espacial.ipynb). Los años se ajustan en `config.py`.
-- **Calidad del aire:** series diaria y mensual en `data/interim/aire/` (notebooks 1.4 y 2.4); falta integrarlas al panel.
+- **Calidad del aire:** datasets limpios semanal (semana epidemiológica) y mensual en `data/processed/aire/` (notebooks 1.4 y 2.4; serie diaria en `data/interim/aire/`). Los huecos de hasta 2 semanas (1 mes) se interpolan y quedan marcados en `*_interpolado`; los huecos largos quedan en NaN. Cada día se clasifica con el Índice AIRE Y SALUD (bandas de la NOM-172-SEMARNAT-2019), y las tablas semanal y mensual guardan la categoría del peor día y los días Aceptable o peor. Falta integrarlos al panel.
 
 ### Alcance actual y próximos pasos
 
