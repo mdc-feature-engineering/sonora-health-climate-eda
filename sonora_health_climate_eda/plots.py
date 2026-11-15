@@ -7,8 +7,77 @@ from sonora_health_climate_eda.config import FIGURES_DIR, PROCESSED_DATA_DIR, PA
 
 app = typer.Typer()
 
+import matplotlib.dates as mdates
+from matplotlib.patches import Patch
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
+
+# Colores de plot_cobertura: medido (dato real), interpolado (relleno) y sin dato.
+COBERTURA_COLORES = {"medido": "#2a78d6", "interpolado": "#86b6ef", "sin dato": "#e4e3df"}
+
+
+def plot_cobertura(tabla, fecha_col, capas, interpoladas=None, ax=None):
+    """Dibuja una franja por capa con los periodos medidos, interpolados y sin dato.
+
+    Muestra de un vistazo en qué periodos se puede comparar cada capa con las
+    demás. ``tabla`` tiene una fila por periodo (semana o mes) y ``fecha_col``
+    es la fecha de inicio de cada periodo. ``capas`` mapea la etiqueta de cada
+    franja a su columna; un NaN cuenta como "sin dato". ``interpoladas``
+    (opcional) mapea la etiqueta a una columna booleana que marca los valores
+    rellenados. A la derecha de cada franja se anota el % de periodos con dato.
+    """
+    tabla = tabla.sort_values(fecha_col).reset_index(drop=True)
+    inicio = pd.to_datetime(tabla[fecha_col])
+    fin = inicio.shift(-1).fillna(inicio.iloc[-1] + inicio.diff().median())
+    x0 = mdates.date2num(inicio)
+    ancho = mdates.date2num(fin) - x0
+    interpoladas = interpoladas or {}
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(12, 0.45 * len(capas) + 1.2))
+    for i, (etiqueta, columna) in enumerate(capas.items()):
+        y = len(capas) - 1 - i  # la primera capa queda arriba
+        interp = (
+            tabla[interpoladas[etiqueta]].fillna(False).to_numpy(bool)
+            if etiqueta in interpoladas
+            else np.zeros(len(tabla), bool)
+        )
+        con_dato = tabla[columna].notna().to_numpy()
+        estado = np.select([interp, con_dato], ["interpolado", "medido"], "sin dato")
+        # Une los periodos seguidos con el mismo estado en un solo tramo
+        racha = np.r_[0, np.cumsum(estado[1:] != estado[:-1])]
+        for r in np.unique(racha):
+            m = racha == r
+            ax.broken_barh(
+                [(x0[m][0], ancho[m].sum())], (y - 0.35, 0.7),
+                facecolor=COBERTURA_COLORES[estado[m][0]], edgecolor="none",
+            )
+        ax.annotate(
+            f"{con_dato.mean() * 100:.0f} % con dato",
+            xy=(1, y), xycoords=("axes fraction", "data"),
+            xytext=(6, 0), textcoords="offset points", va="center", fontsize=9, color="#52514e",
+        )
+
+    ax.set_yticks(range(len(capas)), list(capas)[::-1])
+    ax.set_ylim(-0.6, len(capas) - 0.4)
+    ax.set_xlim(x0[0], x0[-1] + ancho[-1])
+    # Marca el 1 de enero y escribe el año a mitad de cada año
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(plt.NullFormatter())
+    ax.xaxis.set_minor_locator(mdates.YearLocator(month=7, day=1))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter("%Y"))
+    ax.tick_params(axis="x", which="minor", length=0)
+    ax.tick_params(axis="y", length=0)
+    ax.grid(False)
+    for lado in ("top", "right", "left"):
+        ax.spines[lado].set_visible(False)
+    ax.legend(
+        handles=[Patch(facecolor=c, label=n) for n, c in COBERTURA_COLORES.items()],
+        loc="lower left", bbox_to_anchor=(0, 1), ncols=3, frameon=False, fontsize=9,
+    )
+    return ax
+
 
 def plot_serie_temporal_ira(df_panel):
     """
