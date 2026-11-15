@@ -196,7 +196,7 @@ Cada notebook 2.x guarda su capa en `data/processed/` en su celda **"Guardar sal
 | Aire | 2.4 | `data/processed/aire/aire_hermosillo_mensual.csv` y `aire_hermosillo_semanal.csv` |
 | IRA | 2.5 | `data/processed/health_ira_monthly.parquet` y `health_ira_weekly.parquet` |
 
-**Resultado** (prueba del 15-nov-2026 con datos reales, salvo aire): panel mensual de **72 meses × 42 columnas**, sin columnas vacías; solo faltan los 3 diciembres del SMN. Panel semanal de **313 semanas × 39 columnas** (4-ene-2015 a 27-dic-2020), todas en domingo; solo falta la sequía de la primera semana.
+**Resultado** (15-nov-2026, con las 6 capas): panel mensual de **72 meses × 66 columnas** y panel semanal de **313 semanas × 62 columnas** (4-ene-2015 a 27-dic-2020, todas en domingo), sin columnas vacías. Los únicos faltantes son los esperados: los 3 diciembres del SMN, los huecos de calidad del aire (sobre todo PM2.5 desde junio de 2018 y jun–nov de 2018; ver capa 5) y la sequía de la primera semana.
 
 ## Pendientes
 
