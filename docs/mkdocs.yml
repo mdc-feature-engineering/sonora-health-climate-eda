@@ -4,4 +4,5 @@ site_author: PatQz
 nav:
   - Inicio: index.md
   - Protocolo EDA: ../protocolo_eda.md
+  - Catálogo de datos: catalogo_datos_panel.md
   - Primeros pasos: getting-started.md

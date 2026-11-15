@@ -57,6 +57,17 @@ def _se_start(year: int, week: int) -> pd.Timestamp:
     return start + pd.Timedelta(weeks=week - 1)
 
 
+def _panel_weeks() -> pd.DatetimeIndex:
+    """Domingos de inicio de las semanas epidemiológicas de la ventana del panel.
+
+    De la SE1 de PANEL_START_YEAR a la última SE de PANEL_END_YEAR
+    (2015-01-04 a 2020-12-27: 313 semanas).
+    """
+    first = _se_start(PANEL_START_YEAR, 1)
+    last = _se_start(PANEL_END_YEAR + 1, 1) - pd.Timedelta(weeks=1)
+    return pd.date_range(first, last, freq="7D")
+
+
 def _load_smn_temperature_series(folder_glob: str, raw_col: str, out_col: str) -> pd.DataFrame:
     """Carga resúmenes mensuales SMN de una serie de temperatura.
 
@@ -365,15 +376,19 @@ def drought_hermosillo() -> pd.DataFrame:
     """
     df = _drought_records_hermosillo()
     df["fecha_mes"] = df["fecha"].dt.to_period("M").dt.to_timestamp()
+    # Sin sequía, la fuente deja la categoría vacía: es "Normal" (severidad 0),
+    # igual que en la versión semanal.
+    df["categoria_sequia"] = df["categoria_sequia"].fillna("Normal").replace("", "Normal")
     df = df[(df["fecha"].dt.year >= PANEL_START_YEAR) & (df["fecha"].dt.year <= PANEL_END_YEAR)]
 
     g = df.groupby("fecha_mes")
     out = g["severidad_num"].mean().rename("severidad_sequia").reset_index()
+    # Moda del mes; si las dos quincenas empatan, gana la categoría más severa.
     modal = (
         df.groupby(["fecha_mes", "categoria_sequia"])
-        .size()
-        .reset_index(name="n")
-        .sort_values("n", ascending=False)
+        .agg(n=("severidad_num", "size"), sev=("severidad_num", "max"))
+        .reset_index()
+        .sort_values(["fecha_mes", "n", "sev"], ascending=[True, False, False])
         .drop_duplicates("fecha_mes")[["fecha_mes", "categoria_sequia"]]
     )
     out = out.merge(modal, on="fecha_mes", how="left")
@@ -381,16 +396,19 @@ def drought_hermosillo() -> pd.DataFrame:
 
 def drought_hermosillo_weekly() -> pd.DataFrame:
     """Agrega el Monitor de Sequía (quincenal) a semana epidemiológica.
-    
-    ``severidad_promedio`` = media de ``severidad_num`` (0–5) de las
-    quincenas de la semana; ``categoria_sequia`` = categoría modal.
+
+    ``severidad_sequia`` = media de ``severidad_num`` (0–5) de los registros
+    de la semana; ``categoria_sequia`` = categoría modal. ``fecha_semana`` es
+    el domingo de inicio, como IRA, aire y Open-Meteo. Como la fuente es
+    quincenal, las semanas sin registro repiten el último registro vigente;
+    la primera semana de la ventana queda en NaN si no hay registro previo.
     """
     df = _drought_records_hermosillo()
-    
-    # 1. Asegurar formato de fecha y filtro de años
+
+    # 1. Asegurar formato de fecha
     df["fecha"] = pd.to_datetime(df["fecha"])
-    df["fecha_semana"] = df["fecha"].dt.to_period("W-SUN").dt.start_time
-    df = df[(df["fecha"].dt.year >= PANEL_START_YEAR) & (df["fecha"].dt.year <= PANEL_END_YEAR)].copy()
+    # weekday(): lunes=0 … domingo=6 → días que hay que retroceder hasta el domingo
+    df["fecha_semana"] = df["fecha"] - pd.to_timedelta((df["fecha"].dt.weekday + 1) % 7, unit="D")
 
     # 2. Calcular severidad promedio
     g = df.groupby("fecha_semana")
@@ -408,9 +426,14 @@ def drought_hermosillo_weekly() -> pd.DataFrame:
         .drop_duplicates(subset=["fecha_semana"])
         [["fecha_semana", "categoria_sequia"]]
     )
-    
-    out = out.merge(modal, on="fecha_semana", how="left")
-    return out.sort_values("fecha_semana").reset_index(drop=True)
+
+    out = out.merge(modal, on="fecha_semana", how="left").set_index("fecha_semana")
+
+    # 5. Todas las semanas del panel: las que no tienen registro repiten el
+    # último registro quincenal vigente (ffill sobre la serie completa).
+    weeks = _panel_weeks()
+    out = out.reindex(out.index.union(weeks)).sort_index().ffill().reindex(weeks)
+    return out.rename_axis("fecha_semana").reset_index()
 
 def marginacion_hermosillo() -> pd.DataFrame:
     """Interpolación mensual del IM municipal (y sus indicadores) entre censos 2015 y 2020.
@@ -509,7 +532,8 @@ def health_ira_monthly() -> pd.DataFrame:
     La semana epidemiológica se asigna al mes de su fecha de inicio
     (convención SUAVE). Un mes suma 4 o 5 semanas (``n_semanas``);
     ``casos_ira_por_semana`` evita que los meses de 5 semanas parezcan
-    tener más casos.
+    tener más casos. (No se llama ``casos_ira_total`` para no confundirlo
+    con el total semanal de ``health_ira_weekly``.)
     """
     weekly = health_ira_weekly()
     weekly["fecha_mes"] = weekly["fecha_semana"].dt.to_period("M").dt.to_timestamp()
@@ -519,7 +543,7 @@ def health_ira_monthly() -> pd.DataFrame:
         .sort_values("fecha_mes")
         .reset_index(drop=True)
     )
-    out["casos_ira_total"] = out["casos_ira"] / out["n_semanas"]
+    out["casos_ira_por_semana"] = out["casos_ira"] / out["n_semanas"]
     return out
 
 def build_panel_monthly() -> pd.DataFrame:
@@ -527,12 +551,15 @@ def build_panel_monthly() -> pd.DataFrame:
     #Obtener datos de folder processed
     # Calidad del aire: dataset limpio mensual de aire.py (notebook 2.4)
     air_quality = pd.read_csv(AIR_MONTHLY_PATH, parse_dates=["fecha_mes"])
+    # Temperatura SMN (notebook 2.0): la usa mes_calor_extremo
+    climate = pd.read_parquet(PROCESSED_DATA_DIR / "climate_hermosillo.parquet")
     drought = pd.read_parquet(PROCESSED_DATA_DIR / "drought_hermosillo.parquet")
     margin = pd.read_parquet(PROCESSED_DATA_DIR / "marginacion_hermosillo.parquet")
     health = pd.read_parquet(PROCESSED_DATA_DIR / "health_ira_monthly.parquet")
     om = pd.read_parquet(PROCESSED_DATA_DIR / "openmeteo_hermosillo_monthly.parquet")
 
-    panel = air_quality.merge(drought, on="fecha_mes", how="outer")
+    panel = climate.merge(air_quality, on="fecha_mes", how="outer")
+    panel = panel.merge(drought, on="fecha_mes", how="outer")
     panel = panel.merge(margin, on="fecha_mes", how="outer")
     panel = panel.merge(health, on="fecha_mes", how="outer")
     panel = panel.merge(om, on="fecha_mes", how="left")
@@ -582,10 +609,14 @@ def build_panel_weekly() -> pd.DataFrame:
         columns=["anio", "semana", "n_dias"]
     )
     drought = pd.read_parquet(PROCESSED_DATA_DIR / "drought_hermosillo_weekly.parquet")
-    margin = pd.read_parquet(PROCESSED_DATA_DIR / "marginacion_hermosillo.parquet")
     health = pd.read_parquet(PROCESSED_DATA_DIR / "health_ira_weekly.parquet")
     om = pd.read_parquet(PROCESSED_DATA_DIR / "openmeteo_hermosillo_weekly.parquet")
-
+    # La marginación solo existe por mes: cada semana toma el valor del mes de
+    # su domingo de inicio (misma regla que health_ira_monthly).
+    margin_monthly = pd.read_parquet(PROCESSED_DATA_DIR / "marginacion_hermosillo.parquet")
+    weeks = pd.DataFrame({"fecha_semana": _panel_weeks()})
+    weeks["fecha_mes"] = weeks["fecha_semana"].dt.to_period("M").dt.to_timestamp()
+    margin = weeks.merge(margin_monthly, on="fecha_mes", how="left").drop(columns="fecha_mes")
 
     panel = air_quality.merge(drought, on="fecha_semana", how="outer")
     panel = panel.merge(margin, on="fecha_semana", how="outer")
@@ -593,15 +624,18 @@ def build_panel_weekly() -> pd.DataFrame:
     panel = panel.merge(om, on="fecha_semana", how="left")
     panel = panel.sort_values("fecha_semana").reset_index(drop=True)
 
-    expected = pd.date_range(f"{PANEL_START_YEAR}-01-01", f"{PANEL_END_YEAR}-12-01", freq="W-SUN")
+    # Semanas epidemiológicas completas de la ventana (incluye las de diciembre de 2020)
+    expected = _panel_weeks()
     panel = panel.set_index("fecha_semana").reindex(expected).rename_axis("fecha_semana").reset_index()
     # Los merges outer pasan las banderas de aire a object; una semana sin fila de aire
     # no se interpoló, así que vuelve a bool con False.
     air_flags = panel.columns[panel.columns.str.endswith("_interpolado")]
     panel[air_flags] = panel[air_flags].eq(True)
 
-    # Flags de exposición extrema (umbrales en config.py).
-    panel["semana_calor_extremo"] = (panel["temp_max_media_c"] >= HEAT_EXTREME_TMAX_C).astype(
+    # Flags de exposición extrema (umbrales en config.py). La temperatura SMN
+    # solo existe por mes, así que aquí se usa la Tmax media semanal de
+    # Open-Meteo (~2.2 °C bajo el SMN: con el mismo umbral salen menos semanas).
+    panel["semana_calor_extremo"] = (panel["tmax_media_sem"] >= HEAT_EXTREME_TMAX_C).astype(
         "boolean"
     )
     panel["semana_sequia"] = (panel["severidad_sequia"] >= DROUGHT_EXTREME_MIN_SEVERITY).astype(
@@ -619,7 +653,10 @@ def build_panel_weekly() -> pd.DataFrame:
         panel["semana_ola_calor_p95"] & panel["semana_sequia"]
     ).astype("boolean")
     panel["semana_calor_humedo"] = (panel["n_olas_calor_humedo"] > 0).astype("boolean")
-    panel["anio_atipico"] = panel["fecha_semana"].dt.year.isin(HEALTH_ANOMALY_YEARS).astype("boolean")
+    # Año epidemiológico = año del miércoles de la semana (la SE1 de 2020 empieza
+    # el 29-dic-2019 y sí pertenece a 2020).
+    anio_epi = (panel["fecha_semana"] + pd.Timedelta(days=3)).dt.year
+    panel["anio_atipico"] = anio_epi.isin(HEALTH_ANOMALY_YEARS).astype("boolean")
 
     out_path = PROCESSED_DATA_DIR / "panel_hermosillo_semanal.parquet"
     PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)

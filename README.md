@@ -29,10 +29,12 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 
 `data/processed/panel_hermosillo.parquet`: Hermosillo, mensual, 2015–2020 (72 meses × 40 columnas).
 
+Qué trae cada capa, sus columnas y lo que hay que tomar en cuenta: [`catalogo_datos_panel.md`](docs/docs/catalogo_datos_panel.md).
+
 - **Clima:** datos diarios de Open-Meteo agregados por mes (olas de calor ≥35 °C y p95, humedad relativa).
 - **Flags:** `mes_ola_calor_p95`, `mes_sequia`, `mes_ola_calor_p95_y_sequia`.
 - **Salud:** un mes suma 4 o 5 semanas (`n_semanas`); `casos_ira_por_semana` permite comparar meses.
-- **Cómo se genera:** `panel.build_panel()`; ver [`3.0-integracion-espacial.ipynb`](notebooks/03_eda/3.0-integracion-espacial.ipynb). Los años se ajustan en `config.py`.
+- **Cómo se genera:** cada notebook de `02_procesamiento/` guarda su capa en `data/processed/` y `panel.build_panel_monthly()` / `build_panel_weekly()` las une (panel semanal: `panel_hermosillo_semanal.parquet`, 313 semanas); ver [`3.0-integracion-espacial.ipynb`](notebooks/03_eda/3.0-integracion-espacial.ipynb). Los años se ajustan en `config.py`.
 - **Calidad del aire:** datasets limpios semanal (semana epidemiológica) y mensual en `data/processed/aire/` (notebooks 1.4 y 2.4; serie diaria en `data/interim/aire/`). Los huecos de hasta 2 semanas (1 mes) se interpolan y quedan marcados en `*_interpolado`; los huecos largos quedan en NaN. Cada día se clasifica con el Índice AIRE Y SALUD (bandas de la NOM-172-SEMARNAT-2019), y las tablas semanal y mensual guardan la categoría del peor día y los días Aceptable o peor. Falta integrarlos al panel.
 
 ### Alcance actual y próximos pasos
