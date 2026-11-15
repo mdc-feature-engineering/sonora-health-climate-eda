@@ -466,16 +466,21 @@ def marginacion_hermosillo() -> pd.DataFrame:
     return out
 
 
-def health_ira_weekly() -> pd.DataFrame:
+def health_ira_weekly(location:bool=False) -> pd.DataFrame:
     """Casos confirmados de IRA (Hermosillo) por semana epidemiológica.
 
     Se colapsan ``genero``, ``grupo_edad`` y ``clues``. ``fecha_semana`` es
     la fecha de inicio de la semana (``_se_start``).
     """
+
+    cols = ["clave_municipio", "municipio", "anio", "semana", "casos"]
+
+    if location:
+        cols.append("clave_localidad")
     path = INTERIM_DATA_DIR / "salud_ira_hermosillo.csv"
     df = pd.read_csv(
         path,
-        usecols=["clave_municipio", "municipio", "anio", "semana", "casos"],
+        usecols=cols,
     )
     hermosillo_clave = int(HERMOSILLO_CVE_MUN) % 1000  # 26030 -> 30
     df = df[df["clave_municipio"] == hermosillo_clave]
@@ -485,20 +490,33 @@ def health_ira_weekly() -> pd.DataFrame:
     )
     df = df[(df["anio"] >= PANEL_START_YEAR) & (df["anio"] <= PANEL_END_YEAR)]
 
-    out = (
+    if not location:
+        out = (
         df.groupby(["fecha_semana", "anio", "semana"], as_index=False)["casos"]
         .sum()
         .rename(columns={"casos": "casos_ira_total"})
         .sort_values("fecha_semana")
         .reset_index(drop=True)
     )
-    logger.info(
-        f"Salud IRA Hermosillo: {len(out)} semanas, {int(out['casos_ira_total'].sum())} casos en ventana."
-    )
+
+        logger.info(
+            f"Salud IRA Hermosillo: {len(out)} semanas, {int(out['casos_ira_total'].sum())} casos en ventana."
+        )
+    else:
+        out = (
+            df.groupby(["fecha_semana", "anio", "semana", "clave_localidad"], as_index=False)["casos"]
+            .sum()
+            .rename(columns={"casos": "casos_ira_total"})
+            .sort_values("fecha_semana")
+            .reset_index(drop=True)
+        )
+        logger.info(
+            f"Salud IRA: {len(out)} semanas, {int(out['casos_ira_total'].sum())} casos en ventana por localidad."
+        )
     return out
 
 
-def health_ira_monthly() -> pd.DataFrame:
+def health_ira_monthly(location: bool = False) -> pd.DataFrame:
     """Casos confirmados de IRA (Hermosillo) de semanal a mensual.
 
     La semana epidemiológica se asigna al mes de su fecha de inicio
@@ -506,10 +524,13 @@ def health_ira_monthly() -> pd.DataFrame:
     ``casos_ira_por_semana`` evita que los meses de 5 semanas parezcan
     tener más casos.
     """
-    weekly = health_ira_weekly()
+    weekly = health_ira_weekly(location)
     weekly["fecha_mes"] = weekly["fecha_semana"].dt.to_period("M").dt.to_timestamp()
+    group_cols = ["fecha_mes"]
+    if location:
+        group_cols.append("clave_localidad")
     out = (
-        weekly.groupby("fecha_mes", as_index=False)
+        weekly.groupby(group_cols, as_index=False)
         .agg(casos_ira=("casos_ira_total", "sum"), n_semanas=("fecha_semana", "nunique"))
         .sort_values("fecha_mes")
         .reset_index(drop=True)
