@@ -7,7 +7,7 @@ mensual común (ene-2015 a dic-2020 por defecto):
    mínima por estación; se promedian las estaciones de la zona metropolitana de
    Hermosillo definidas en ``config.CLIMATE_STATION_IDS``).
 2. Sequía — Monitor de Sequía SMN/CONAGUA (quincenal → mensual).
-3. Marginación — IMN municipal CONAPO interpolado linealmente entre los
+3. Marginación — IM municipal CONAPO interpolado linealmente entre los
    censos 2015 y 2020 (los CSV depurados ya existen en
    ``data/interim/marginacion/``; la ingesta sigue pausada).
 4. Salud — casos confirmados de IRA (CIE-10 J00-J06/J20/J21 menos
@@ -410,7 +410,7 @@ def drought_hermosillo_weekly() -> pd.DataFrame:
     return out.sort_values("fecha_semana").reset_index(drop=True)
 
 def marginacion_hermosillo() -> pd.DataFrame:
-    """Interpolación mensual del IMN municipal entre censos 2015 y 2020.
+    """Interpolación mensual del IM municipal (y sus indicadores) entre censos 2015 y 2020.
 
     Parte de los CSV ya depurados en ``data/interim/marginacion/`` y
     filtra Hermosillo (``CVE_MUN == 26030``).
@@ -437,9 +437,11 @@ def marginacion_hermosillo() -> pd.DataFrame:
     end = pd.Timestamp(PANEL_END_YEAR, 12, 1)
     months = pd.date_range(start, end, freq="MS")
 
-    # Indicadores numéricos del IMN (se excluyen claves, nombres y POB_TOT,
-    # que es un stock censal y no un indicador del índice).
-    key_cols = {cve, "CVE_ENT", "NOM_ENT", "NOM_MUN", "ENTIDAD", "POB_TOT"}
+    # Indicadores numéricos del IM (se excluyen claves, nombres y POB_TOT,
+    # que es un stock censal y no un indicador del índice). IMN también se
+    # excluye: CONAPO lo normaliza con una escala distinta en cada censo
+    # (IMN/IM cambia por año), así que no es comparable en el tiempo.
+    key_cols = {cve, "CVE_ENT", "NOM_ENT", "NOM_MUN", "ENTIDAD", "POB_TOT", "IMN"}
     numeric_cols = [
         c
         for c in a.columns
