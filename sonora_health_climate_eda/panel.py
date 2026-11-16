@@ -101,17 +101,23 @@ def load_smn_temperature() -> pd.DataFrame:
     """Temperatura media mensual SMN (``Tmed``, °C)."""
     # Ojo: el glob excluye temperatura_max_*/temperatura_min_* (nombre no
     # empieza con dígito tras el prefijo).
-    return _load_smn_temperature_series("temperatura_[0-9]*/*.csv", "Tmed", "temp_media_c")
+    return _load_smn_temperature_series(
+        "temperatura/temperatura_[0-9]*/*.csv", "Tmed", "temp_media_c"
+    )
 
 
 def load_smn_temperature_max() -> pd.DataFrame:
     """Temperatura máxima mensual SMN (``Tmax``, °C) — proxy de calor extremo."""
-    return _load_smn_temperature_series("temperatura_max_*/*.csv", "Tmax", "temp_max_media_c")
+    return _load_smn_temperature_series(
+        "temperatura/temperatura_max_*/*.csv", "Tmax", "temp_max_media_c"
+    )
 
 
 def load_smn_temperature_min() -> pd.DataFrame:
     """Temperatura mínima mensual SMN (``Tmin``, °C)."""
-    return _load_smn_temperature_series("temperatura_min_*/*.csv", "Tmin", "temp_min_media_c")
+    return _load_smn_temperature_series(
+        "temperatura/temperatura_min_*/*.csv", "Tmin", "temp_min_media_c"
+    )
 
 
 CLIMATOLOGY_START = "1991-01-01"  # base WMO ~30 años para percentiles
@@ -684,3 +690,48 @@ def build_panel_weekly() -> pd.DataFrame:
     panel.to_parquet(out_path, index=False)
     logger.success(f"Panel semanal guardado en {out_path} ({len(panel)} semanas).")
     return panel
+
+
+def air_quality_analysis(df, nombre_panel):
+    print("=" * 60)
+    print(f"ANÁLISIS DE CALIDAD DEL AIRE: {nombre_panel}")
+    print("=" * 60)
+    
+    total_filas = len(df)
+    print(f"Total de periodos en {nombre_panel}: {total_filas}\n")
+    
+    # 1. Cobertura de datos (conteo y porcentaje de no nulos)
+    print("--- 1. COBERTURA DE DATOS (Valores válidos / No nulos) ---")
+    contaminantes = {
+        "PM2.5": [c for c in df.columns if 'pm25' in c.lower()],
+        "PM10": [c for c in df.columns if 'pm10' in c.lower()],
+        "Ozono (O3)": [c for c in df.columns if 'o3' in c.lower()]
+    }
+    
+    for nombre_cont, cols in contaminantes.items():
+        if cols:
+            print(f"[{nombre_cont}]")
+            for col in cols:
+                no_nulos = df[col].notna().sum()
+                pct = (no_nulos / total_filas) * 100
+                print(f"  • {col}: {no_nulos} / {total_filas} ({pct:.1f}%)")
+        else:
+            print(f"[{nombre_cont}] No se encontraron columnas asociadas.")
+            
+    # 2. Conteo de periodos interpolados
+    print("\n--- 2. PERIODOS INTERPOLADOS (*_interpolado) ---")
+    cols_interp = [c for c in df.columns if 'interpolado' in c.lower()]
+    
+    if cols_interp:
+        for col in cols_interp:
+            if df[col].dtype in ['bool', 'boolean']:
+                n_interp = df[col].sum()
+                pct_interp = (n_interp / total_filas) * 100
+                print(f"  • {col}: {n_interp} periodos verdaderos ({pct_interp:.1f}%)")
+            else:
+                # Por si acaso la columna está como texto u otro tipo
+                n_interp = (df[col] == True).sum()
+                print(f"  • {col}: {n_interp} periodos (tipo {df[col].dtype})")
+    else:
+        print("  No se encontraron columnas con indicador de interpolación.")
+    print("\n")

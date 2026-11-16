@@ -115,7 +115,7 @@ def download_drought_data(start_year: int = PANEL_START_YEAR, end_year: int = PA
 
 @app.command()
 def download_temperature_data(start_year: int = PANEL_START_YEAR, end_year: int = PANEL_END_YEAR):
-    """Descarga los archivos mensuales de temperatura media (TMed) directamente en data/raw/."""
+    """Descarga los archivos mensuales de temperatura media (TMed) en data/raw/temperatura/."""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     # 1. Asegurar que la carpeta data/raw exista
@@ -132,8 +132,8 @@ def download_temperature_data(start_year: int = PANEL_START_YEAR, end_year: int 
         year_str = str(current_year)
         logger.info(f"--- Descarga de temperatura del año: {year_str} ---")
 
-        # Se crea directamente en data/raw/temperatura_XXXX
-        year_folder = RAW_DATA_DIR / f"temperatura_{year_str}"
+        # data/raw/temperatura/temperatura_XXXX
+        year_folder = RAW_DATA_DIR / "temperatura" / f"temperatura_{year_str}"
         year_folder.mkdir(parents=True, exist_ok=True)
 
         for month in range(1, 13):
@@ -177,7 +177,8 @@ def download_temperature_extremes_data(
 
     Misma estructura que ``download_temperature_data``: un CSV por mes con
     todas las estaciones del país. Se guardan en
-    ``data/raw/temperatura_max_YYYY/`` y ``data/raw/temperatura_min_YYYY/``.
+    ``data/raw/temperatura/temperatura_max_YYYY/`` y
+    ``data/raw/temperatura/temperatura_min_YYYY/``.
     """
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -193,7 +194,7 @@ def download_temperature_extremes_data(
         for current_year in range(start_year, end_year + 1):
             year_str = str(current_year)
             logger.info(f"--- {series} del año: {year_str} ---")
-            year_folder = RAW_DATA_DIR / f"{suffix}_{year_str}"
+            year_folder = RAW_DATA_DIR / "temperatura" / f"{suffix}_{year_str}"
             year_folder.mkdir(parents=True, exist_ok=True)
 
             for month in range(1, 13):
@@ -219,6 +220,20 @@ def download_temperature_extremes_data(
                     logger.error(f"Error al descargar {file_name}: {e}")
 
     logger.success("Descargas de temperatura máxima/mínima completadas.")
+
+
+@app.command()
+def download_openmeteo_data():
+    """Descarga la serie diaria de Open-Meteo para Hermosillo (1991–2020).
+
+    Tmax, Tmin y humedad relativa diarias. Se guarda en
+    ``data/raw/openmeteo_hermosillo_daily_1991_2020.csv``; si ya existe, no
+    se vuelve a descargar.
+    """
+    from sonora_health_climate_eda.panel import load_openmeteo_daily
+
+    df = load_openmeteo_daily()
+    logger.success(f"Open-Meteo diario: {len(df)} días disponibles.")
 
 
 @app.command()
@@ -336,10 +351,14 @@ def data_ingestion_pipeline(start_year: int = PANEL_START_YEAR, end_year: int = 
     logger.info("Paso 1/5: Descargando y preprocesando datos de sequía...")
     download_drought_data(start_year, end_year)
 
-    logger.info("Paso 2/5: Descargando datos de temperatura media...")
+    logger.info("Paso 2/5: Descargando temperatura media, máxima y mínima (SMN)...")
     download_temperature_data(start_year, end_year)
+    download_temperature_extremes_data(start_year, end_year)
 
-    logger.info("Paso 3/5: Descargando calidad del aire (RUOA-ERNO)...")
+    logger.info("Paso 3/5: Descargando serie diaria de Open-Meteo...")
+    download_openmeteo_data()
+
+    logger.info("Paso 4/5: Descargando calidad del aire (RUOA-ERNO)...")
     download_air_quality_data(start_year, end_year)
 
     logger.info("Capas pendientes (marginación, salud)...")
