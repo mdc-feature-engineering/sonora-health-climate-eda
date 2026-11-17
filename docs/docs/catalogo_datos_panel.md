@@ -112,7 +112,7 @@ Las dos tablas tienen las mismas columnas; cambia la llave (`fecha_mes` / `fecha
 - **`IMN` se eliminó** porque CONAPO lo normaliza con una escala distinta cada año y no sirve para comparar en el tiempo.
 - **`PO2SM` salta de 20 % a 47 %** entre 2015 y 2020 en todo Sonora. Probablemente cambió cómo se mide (el salario mínimo subió mucho en 2019–2020); no interpretarlo como empeoramiento real.
 - **Panel semanal:** cada semana toma el valor del mes de su domingo de inicio.
-- Es un **solo valor para todo el municipio**. La marginación por AGEB (zonas de la ciudad) está pendiente de la cartografía del INEGI.
+- Es un **solo valor para todo el municipio**. La comparación intra-urbana se hace con la **marginación por colonia 2020** (cartografía CONAPO, SHP con geometría + índice + población) en el notebook `3.6-analisis-marginacion-urbana`.
 - Diccionario completo: `references/marginacion/data_dictionary_conapo_IM.md`.
 
 ## 5. Calidad del aire
@@ -162,6 +162,7 @@ Las dos tablas tienen las mismas columnas; cambia la llave (`fecha_mes` / `fecha
 - **Los meses tienen 4 o 5 semanas.** Para comparar meses, usar `casos_ira_por_semana`, no la suma.
 - **2020 es atípico:** los casos caen ~70 % por la COVID-19 (cambió la notificación, no la enfermedad). La bandera `anio_atipico` lo marca; no usar 2020 como si fuera un año normal. En el panel semanal marca 53 semanas: la SE1 de 2020 empieza el 29-dic-2019.
 - **Semanas epidemiológicas por año:** 2015–2019 tienen 52 y 2020 tiene 53. Ojo: `processing.construir_panel_temporal()` (notebook 2.5) cuenta semanas ISO, que empiezan en lunes, y por eso crea una "semana 53 de 2015" con 0 casos que no existe en el calendario epidemiológico. Revisar con el equipo.
+- **La semana es de notificación, no de inicio de síntomas.** Puede haber rezago administrativo de días o semanas entre la consulta y el registro, y no todas las clínicas reportan con la misma puntualidad — relevante al interpretar rezagos cortos (0–2 semanas) contra exposiciones.
 - **Depende del catálogo CLUES.** `health_ira_weekly()` ahora lee `data/interim/salud_ira_hermosillo.csv`, que genera el notebook 2.5 al unir los casos con `data/external/clues/clues_hermosillo_ira.csv`. Ese catálogo no está en el repositorio: hay que pedirlo al equipo.
 
 ---

@@ -9,9 +9,7 @@
 
 ## 1. Nombre del proyecto
 
-**Análisis Exploratorio y Modelado Espacio-Temporal de la Vulnerabilidad
-Socioeconómica y Climática ante Enfermedades Respiratorias en Hermosillo,
-Sonora**
+**Condiciones Ambientales y Salud Respiratoria en Hermosillo**
 
 ---
 

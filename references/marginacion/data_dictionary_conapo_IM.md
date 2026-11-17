@@ -74,3 +74,52 @@ Estas variables existen en los archivos de CONAPO con el método anterior (o sol
 - **Valores nulos.** No se observaron valores nulos en las 3 filas de Hermosillo. El archivo histórico 1990-2015 usa el guion `-` para indicadores no disponibles; en este archivo no aparece.
 - **Columnas redundantes.** `CVE_MUN` y `CVE_MUN_5D` contienen el mismo valor (`26030`). `CVE_MUN_5D` es auxiliar y puede omitirse en análisis.
 - **Nombres de columnas.** El notebook quita el sufijo de año de los nombres originales (`IM_2020` → `IM`, `GM_2020` → `GM`, `IMN_2020` → `IMN`) para que los tres años compartan columnas. El indicador de localidades pequeñas aparece como `PL.5000` en esta serie y como `PL<5000` en el archivo histórico.
+
+## Capa complementaria: marginación urbana por colonia 2020
+
+Además de la serie municipal, el proyecto usa la **cartografía nacional del
+índice de marginación urbana por colonia 2020** en el notebook
+`03_eda/3.6-analisis-marginacion-urbana.ipynb`. Es un solo shapefile con
+geometría + índice + población por colonia (unidad intra-urbana formada por
+una o varias AGEBs), que permite comparar zonas dentro de la ciudad — la
+serie municipal no lo permite (1 solo valor para todo Hermosillo).
+
+**Fuente:** STCONAPO, "Índice de marginación urbana por colonia 2020
+(cartografía)", dataset `indices_marginacion` de datos.gob.mx
+(`colonias_imc2020_shp.zip`, actualizado mar-2025). La descarga automática
+está bloqueada por el servidor (403 para clientes que no son navegador):
+bajar el ZIP con el navegador y descomprimir en `data/raw/marginacion/`.
+Respaldo oficial: `http://www.conapo.gob.mx/work/models/CONAPO/Marginacion/Datos_Abiertos/Colonia/imc2020_shp.zip`.
+
+**Archivos:**
+- `data/raw/marginacion/colonias_imc2020.{shp,shx,dbf,prj,cpg}` — capa
+  nacional (~82 mil colonias), CRS EPSG:4326 (WGS84).
+- `data/interim/marginacion/colonias_marginacion_hermosillo.gpkg` — solo las
+  657 colonias del municipio 26030, generado por el notebook 3.6.
+
+**Campos usados (shapefile):**
+
+| Campo | Descripción |
+| :--- | :--- |
+| `CVE_COL` | Clave de la colonia (`26030_0001` = municipio + consecutivo) |
+| `COLONIA` | Nombre de la colonia |
+| `CVE_MUN` | Clave concatenada entidad-municipio (`'26030'` = Hermosillo) |
+| `NOM_MUN`, `NOM_LOC` | Nombre del municipio y de la localidad |
+| `POBTOT` | Población total de la colonia (base Censo 2020) |
+| `IM_2020` | Índice de marginación (sin normalizar; mayor = más marginada) |
+| `IMN_2020` | Índice normalizado 0–1 (mayor = más marginada) |
+| `GM_2020` | Grado de marginación: Muy bajo / Bajo / Medio / Alto / Muy alto |
+| `CLASIF` | Tipo de asentamiento (Colonia, Fraccionamiento, etc.) |
+| `P6A14NAE`…`OVSCEL` | Indicadores sociodemográficos componentes del índice |
+
+**Cómo se usa en el EDA (3.6):** las 103 unidades CLUES se convierten a puntos
+(`stations_to_gdf`, lat/lon del catálogo DGIS) y se les asigna su colonia con
+un spatial join `within` (`assign_stations_to_areas`). Los casos IRA se suman
+por `clues` → colonia y se expresan como casos acumulados por 100,000 hab
+(`POBTOT`). Resultado: 76 unidades dentro de una colonia, 58 colonias con
+observatorio.
+
+**Advertencia:** la clave CLUES es la ubicación de la *unidad médica*, no la
+residencia del paciente; la "tasa" por colonia es carga de atención local, no
+incidencia de residentes. Además 599 de las 657 colonias no tienen unidad que
+reporte (son "sin observatorio", no cero casos).

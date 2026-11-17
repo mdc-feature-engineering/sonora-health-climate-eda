@@ -7,6 +7,7 @@ archivo que usa el proyecto (fecha de descarga de los archivos en
 | Capa | Fuente y descripción | Enlace | Fecha de descarga | Cómo se obtiene |
 |------|----------------------|--------|-------------------|-----------------|
 | Índice de marginación | CONAPO / INEGI — índice de marginación municipal 2015 y 2020 (Excel) | https://coespo.sonora.gob.mx/ (portal COESPO Sonora) | 13-nov-2026 | Notebook `01_ingesta/1.3` |
+| Marginación por colonia | STCONAPO — cartografía nacional de marginación urbana por colonia 2020 (SHP, ~45 MB) | https://repodatos.atdt.gob.mx/CONAPO/indices_marginacion/colonias_imc2020_shp.zip | 16-nov-2026 | **Descarga con navegador** (el servidor bloquea clientes automáticos); ver notebook `3.6` |
 | Temperatura (SMN) | CONAGUA/SMN — resúmenes mensuales de temperatura media, máxima y mínima por estación | https://smn.conagua.gob.mx/tools/RESOURCES/com_archivo_datos_resumenes/ | 15-nov-2026 | `download-temperature-data` y `download-temperature-extremes-data` |
 | Temperatura diaria | Open-Meteo Archive API — Tmax, Tmin y humedad relativa diarias de Hermosillo, 1991–2020 | https://archive-api.open-meteo.com/v1/archive | 13-nov-2026 | `download-openmeteo-data` |
 | Índice de sequía | CONAGUA/SMN — Monitor de Sequía en México, quincenal por municipio | https://smn.conagua.gob.mx/tools/RESOURCES/Monitor%20de%20Sequia%20en%20Mexico/MunicipiosSequia.xlsx | 15-nov-2026 | `download-drought-data` |

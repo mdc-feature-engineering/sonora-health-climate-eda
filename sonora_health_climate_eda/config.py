@@ -5,7 +5,8 @@ respiratorias en Hermosillo, Sonora (ver ``docs/docs/protocolo_eda.md``).
 
 Las cinco capas de datos del protocolo son:
 
-1. Índice de marginación (CONAPO/INEGI) — nivel AGEB preferido, municipal como fallback.
+1. Índice de marginación (CONAPO/INEGI) — municipal para el panel; nivel
+   colonia implementado en la libreta 3.6 (AGEB descartada).
 2. Temperatura y clima (CONAGUA/SMN, estaciones REDNAMEC o reanálisis).
 3. Índice de sequía (Monitor de Sequía SMN/CONAGUA).
 4. Calidad del aire (PM2.5, PM10, O3 — RUOA-UNAM, observatorio ERNO Hermosillo).
@@ -44,7 +45,7 @@ REFERENCES_DIR = PROJ_ROOT / "references"
 # vía TARGET_MUNICIPIOS.
 HERMOSILLO_CVE_ENT = "26"
 HERMOSILLO_CVE_MUN = "26030"
-HERMOSILLO_CVE_AGEB_PREFIX = "26003"  # Prefijo de AGEBs de Hermosillo
+HERMOSILLO_CVE_AGEB_PREFIX = "26030"  # Prefijo de AGEBs de Hermosillo (ent 26 + mun 030)
 
 TARGET_MUNICIPIOS = [HERMOSILLO_CVE_MUN]
 
@@ -73,6 +74,17 @@ MARGINACION_AGEB_URL = (
     "9600f414-c1ba-408a-8dd6-7f73d76601d4/download/imu_2020.csv"
 )
 MARGINACION_AGEB_YEAR = 2020
+
+# Cartografía nacional del índice de marginación urbana por colonia 2020
+# (CONAPO vía datos.gob.mx): un solo SHP con geometría + índice + población
+# por colonia. Usada por notebooks/03_eda/3.6 para el análisis intra-urbano.
+# Ojo: repodatos.atdt.gob.mx bloquea clientes que no son navegador (403),
+# así que la descarga del notebook puede fallar y pedir bajar el ZIP a mano.
+# Respaldo (servidor CONAPO, a veces no responde):
+#   http://www.conapo.gob.mx/work/models/CONAPO/Marginacion/Datos_Abiertos/Colonia/imc2020_shp.zip
+MARGINACION_COLONIA_URL = (
+    "https://repodatos.atdt.gob.mx/CONAPO/indices_marginacion/colonias_imc2020_shp.zip"
+)
 
 # Series municipal moderna (esquema IM_YYYY/GM_YYYY/IMN_YYYY) en datos.gob.mx.
 # Nacionales; se filtran a Sonora (CVE_ENT=26) al ingerir.

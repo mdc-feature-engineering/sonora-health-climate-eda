@@ -2,7 +2,7 @@
 
 ## Título del Proyecto
 
-**Análisis Exploratorio y Modelado Espacio-Temporal de la Vulnerabilidad Socioeconómica y Climática ante Enfermedades Respiratorias en Hermosillo, Sonora**
+**Condiciones Ambientales y Salud Respiratoria en Hermosillo**
 
 ---
 
@@ -10,11 +10,11 @@
 
 **Pregunta general:**
 
-> ¿Cómo inciden el calor extremo, la sequía y la contaminación del aire en la incidencia de enfermedades respiratorias en Hermosillo?
+> ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la incidencia de enfermedades respiratorias en Hermosillo?
 
 **Pregunta específica (hipótesis de vulnerabilidad diferencial):**
 
-> ¿Las zonas más marginadas de Hermosillo son las más afectadas por las enfermedades respiratorias durante olas de calor y sequía?
+> ¿Las zonas más marginadas de Hermosillo son las más afectadas por esas condiciones ambientales?
 
 *(Versión original de trabajo: "¿De qué manera la población marginizada en
 Hermosillo presenta una mayor exposición y vulnerabilidad a enfermedades
@@ -23,13 +23,13 @@ efectos de rezago temporal?")*
 
 ## 1.1 Objetivo del proyecto (EDA)
 
-Explorar a profundidad la relación entre la exposición ambiental (calor
-extremo, sequía y contaminación del aire) y la morbilidad respiratoria en
+Explorar a profundidad la relación entre la exposición ambiental (calor,
+frío, sequía y calidad del aire) y la morbilidad respiratoria en
 Hermosillo, para definir los alcances posibles del producto de datos final:
 
 - **Corto plazo:** sistema de alerta por condiciones climáticas y de aire.
-- **Mediano plazo:** modelo predictivo de incidencia por AGEB que incorpore
-  la vulnerabilidad socioeconómica (marginación).
+- **Mediano plazo:** modelo predictivo de incidencia a nivel intra-urbano
+  (colonia) que incorpore la vulnerabilidad socioeconómica (marginación).
 - **Largo plazo:** herramienta de planeación en salud pública dirigida a
   zonas de alta marginación.
 
@@ -41,7 +41,7 @@ Para llevar a cabo este análisis, se integrarán cinco capas de información
 clave, homologadas a nivel espacial y temporal:
 
 1. **Índice de Marginación:**
-   * *Nivel:* AGEB urbana (Áreas Geoestadísticas Básicas) o Localidad (CONAPO / INEGI). Permite una granularidad fina intra-urbana en Hermosillo.
+   * *Nivel:* municipal (serie temporal) y colonia urbana 2020 (CONAPO, ya integrada con geometría, índice y población).
    * *Variables:* Porcentaje de población en pobreza, carencia de servicios básicos (agua, drenaje), y tipos de vivienda.
 2. **Temperatura y Clima:**
    * *Nivel:* Estaciones de monitoreo atmosférico en Hermosillo (REDNAMEC / unidades locales) o modelos gridados de reanálisis.
@@ -53,7 +53,7 @@ clave, homologadas a nivel espacial y temporal:
    * *Nivel:* Estaciones de monitoreo atmosférico diarias.
    * *Variables:* Concentraciones de partículas suspendidas ($PM_{2.5}$, $PM_{10}$) y ozono ($O_3$).
 5. **Enfermedades Respiratorias (Variable de Respuesta):**
-   * *Nivel:* Jurisdicción sanitaria o unidades médicas georeferenciadas por AGEB de residencia del paciente (Secretaría de Salud / SINAVE).
+   * *Nivel:* unidades médicas georreferenciadas (catálogo CLUES/DGIS) por su ubicación — no por residencia del paciente (Secretaría de Salud / SINAVE).
    * *Variables:* Conteo diario de casos de infecciones respiratorias agudas (IRAs), asma, EPOC y neumonías.
 
 ### 2.1 Cómo quedó el panel en la práctica
@@ -77,6 +77,9 @@ qué contiene, de dónde sale cada cosa y sus limitaciones.
   Un mes agrupa 4 o 5 semanas epidemiológicas (`n_semanas`);
   `casos_ira_por_semana` permite comparar meses sin que los de 5 semanas
   parezcan tener más casos.
+- **Panel semanal:** además del mensual existe
+  `panel_eda_semanal.parquet` (313 semanas epidemiológicas, 2015–2020),
+  que usan las libretas `3.4` y `3.6` para anomalías y rezagos.
 
 #### De dónde sale cada capa
 
@@ -86,7 +89,7 @@ qué contiene, de dónde sale cada cosa y sus limitaciones.
 | Sequía | Monitor de Sequía SMN/CONAGUA | De quincenal a mensual: severidad promedio + categoría más frecuente |
 | Marginación | CONAPO/INEGI (archivos ya depurados en `data/interim/`) | La marginación solo existe por censo (2015, 2020): se interpola linealmente mes a mes |
 | Calor extremo diario | Open-Meteo Archive (reanalysis) | Serie diaria 1991–2020 de Tmax, Tmin y humedad → agregados mensuales |
-| Calidad del aire | **Sin fuente todavía** | No está en el panel; sigue pendiente |
+| Calidad del aire | RUOA-UNAM (observatorio ERNO Hermosillo) | Horario → diario → semanal/mensual; PM10 y O3 integrados al panel (PM2.5 sin datos válidos desde jun-2018) |
 
 #### Cómo medimos el calor extremo
 
@@ -141,19 +144,24 @@ Además hay flags mensuales listos para el análisis: `mes_calor_extremo`,
 - La sequía pasa de quincenal a mensual por promedios — se pierde
   detalle de eventos cortos.
 - La semana epidemiológica se asigna al mes de su fecha de inicio.
-- **No hay datos de calidad del aire** — la primera pregunta de
-  investigación solo podrá responderse parcialmente.
+- La calidad del aire tiene **cobertura parcial**: PM2.5 sin datos
+  válidos desde jun-2018 y jun–nov 2018 sin ningún contaminante.
+- La marginación en el panel es **municipal** (un solo valor para toda la
+  ciudad); el nivel intra-urbano se analizó aparte, por colonia
+  (CONAPO 2020), en `3.6-analisis-marginacion-urbana.ipynb`.
+- Los casos se cuentan por unidad médica, no por residencia del paciente,
+  y la semana es de **notificación**: puede haber rezago administrativo
+  de días o semanas entre la consulta y el registro.
 
 ---
 
 ## 3. Estructura Metodológica del EDA (Análisis Exploratorio de Datos)
 
-> **Alcance actual:** por ahora el proyecto cubre solo la **ingesta e
-> integración** de las capas (Fase A) y los templates de datos faltantes,
-> outliers, relaciones por visualización, correlación y reducción de
-> dimensionalidad. El resto (secciones 3.2 y 4) queda como **plan**
-> y se hará cuando estén completos los datos (calidad del aire y geometría
-> AGEB).
+> **Alcance actual:** el proyecto cubre la ingesta, el procesamiento por
+> capa, el panel mensual y el semanal integrados, y el EDA completo
+> (faltantes, outliers, relaciones, correlación, reducción de
+> dimensionalidad y marginación urbana por colonia). Quedan como plan el
+> GLM y el análisis de rezagos formal (CCF/DLNM).
 
 ### 3.1 Implementado: ingesta, integración y calidad de datos
 
@@ -170,8 +178,8 @@ Además hay flags mensuales listos para el análisis: `mes_calor_extremo`,
   definición de la estrategia de imputación por variable (interpolación
   temporal, media por estación, forward-fill o exclusión justificada).
   *(Libreta: `03_eda/3.1-datos-faltantes.ipynb`)*
-* Estandarización de claves geoespaciales (INEGI GEOID) y uniones
-  espaciales (*spatial joins*) entre AGEBs y estaciones de medición.
+* Uniones espaciales (*spatial joins*) entre colonias y unidades CLUES
+  (`spatial.py`, predicado `within`; libreta `3.6`).
 * **Detección de anomalías (outliers):** aplicación de **al menos dos
   técnicas** — regla IQR/Z-score (univariado e interpretable), Isolation
   Forest y Local Outlier Factor (multivariado, sobre variables
@@ -205,16 +213,16 @@ Además hay flags mensuales listos para el análisis: `mes_calor_extremo`,
 
 #### Fase C: Rezagos
 
-* **Panel semanal:** construir un panel por semana epidemiológica
-  (domingo a sábado, ~313 semanas en 2015–2020) con los casos de IRA
-  semanales, Open-Meteo diario agregado a semana, la sequía del último
-  registro quincenal vigente y la marginación del mes (la temperatura SMN
-  es mensual y no entraría). Permite estimar rezagos de 0–3 semanas que en
-  el panel mensual se diluyen.
-* **Función de Correlación Cruzada (CCF):** identificar empíricamente el
-  rezago óptimo entre la exposición ambiental y los casos.
-* **Relación calidad del aire–casos:** días con $PM_{2.5}/PM_{10}$
-  elevados frente a casos de IRA, cuando exista la fuente de aire.
+* **Panel semanal:** ~~construir~~ **construido** —
+  `panel_eda_semanal.parquet` con 313 semanas epidemiológicas
+  (2015–2020): casos de IRA semanales, Open-Meteo diario agregado a
+  semana, sequía vigente y calidad del aire semanal.
+* **Rezagos:** explorados en `3.4` con anomalías (correlación
+  exposición → casos con rezago de 0–5 semanas; señal débil del frío a
+  3–5 semanas) y en `3.6` (comparación a 4 semanas por grupo de
+  marginación). La CCF formal queda pendiente.
+* **Relación calidad del aire–casos:** explorada en `3.4` (PM10 y O3
+  frente a IRA); falta el ajuste formal con el GLM.
 
 #### Fase D: Modelado estadístico (GLM)
 
@@ -232,7 +240,9 @@ Además hay flags mensuales listos para el análisis: `mes_calor_extremo`,
 
 ## 4. Plan: Manejo de Rezagos Temporales (*Lag Effects*)
 
-> Pendiente; no implementado todavía (ver sección 3.2).
+> Parcialmente implementado: las correlaciones con rezago de 0–5 semanas
+> se evaluaron en `3.4` y la comparación a 4 semanas en `3.6`. El
+> GLM/DLNM formal sigue pendiente (ver sección 3.2).
 
 En epidemiología ambiental, los efectos de la exposición no son
 instantáneos: la inhalación de partículas o el estrés térmico provocan
@@ -302,9 +312,10 @@ exploratorio (ver el mapa aspecto → libreta en `notebooks/README.md`):
 | Relaciones entre variables por visualización | `3.3-relaciones-visualizacion.ipynb` |
 | Correlación entre variables | `3.4-correlacion.ipynb` |
 | Reducción de características (PCA, t-SNE) | `3.5-reduccion-dimensionalidad.ipynb` |
+| Marginación por colonia × carga de IRA | `3.6-analisis-marginacion-urbana.ipynb` |
 
-Univariado, rezagos (CCF), mapas coropléticos y GLM quedan
-como plan (sección 3.2) y todavía no tienen libreta.
+El análisis univariado formal, la CCF y el GLM quedan como plan
+(sección 3.2) y todavía no tienen libreta.
 
 ### 5.3 Consulta con los usuarios durante la exploración
 

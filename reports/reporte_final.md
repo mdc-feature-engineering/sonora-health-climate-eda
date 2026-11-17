@@ -4,9 +4,7 @@
 
 ## 1. Nombre del proyecto
 
-**Análisis Exploratorio y Modelado Espacio-Temporal de la Vulnerabilidad
-Socioeconómica y Climática ante Enfermedades Respiratorias en Hermosillo,
-Sonora**
+**Condiciones Ambientales y Salud Respiratoria en Hermosillo**
 
 ---
 
@@ -26,13 +24,13 @@ Sonora**
 
 **Pregunta general:**
 
-> ¿Cómo inciden el calor extremo, la sequía y la contaminación del aire en la
+> ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la
 > incidencia de enfermedades respiratorias en Hermosillo?
 
 **Pregunta específica (hipótesis de vulnerabilidad diferencial):**
 
-> ¿Las zonas más marginadas de Hermosillo son las más afectadas por las
-> enfermedades respiratorias durante olas de calor y sequía?
+> ¿Las zonas más marginadas de Hermosillo son las más afectadas por esas
+> condiciones ambientales?
 
 Las respuestas del EDA a ambas preguntas están en la sección 5.8.
 
@@ -40,9 +38,9 @@ Las respuestas del EDA a ambas preguntas están en la sección 5.8.
 
 ## 3. Resumen de hallazgos
 
-La hipótesis del proyecto era que el calor extremo, la sequía y la
-contaminación del aire elevan la incidencia de enfermedades respiratorias en
-Hermosillo, y que las zonas más marginadas sufren más. El análisis de 313
+La hipótesis del proyecto era que las condiciones ambientales —calor,
+frío, sequía y calidad del aire— inciden en las enfermedades respiratorias
+en Hermosillo, y que las zonas más marginadas sufren más. El análisis de 313
 semanas (2015–2020) muestra algo distinto: **los casos de infecciones
 respiratorias agudas (IRA) siguen un ciclo estacional casi mecánico** — de
 ~1,900 por semana en julio a ~6,200 en enero — y el mes del año explica por
@@ -55,10 +53,11 @@ Sobreviven dos señales débiles: semanas **más frías de lo normal** van
 seguidas de ~2–3 % más casos en las 3–5 semanas siguientes (−0.15), y el
 ozono muestra una asociación frágil (+0.21 que baja a +0.12 sin 2016, año con
 lecturas dudosas del sensor). Ninguna señal apunta al calor extremo. La
-pregunta de vulnerabilidad diferencial por marginación **no puede
-contestarse aún**: la marginación solo existe a nivel municipal; requiere
-desagregación por AGEB. Implicación para el producto de datos: evoluciona de
-"alerta de calor" a **pronóstico estacional + mapa de vulnerabilidad
+pregunta de vulnerabilidad diferencial por marginación se respondió en
+parte: el análisis por **colonia** (libreta `3.6`) no muestra gradiente en
+la carga de IRA, pero es carga por ubicación de clínica — la pregunta por
+*residencia* sigue abierta. Implicación para el producto de datos: evoluciona
+de "alerta de calor" a **pronóstico estacional + mapa de vulnerabilidad
 urbana**.
 
 > **En una frase:** en cada temporada, cuando baja la temperatura suben los
@@ -97,9 +96,11 @@ confirmados de IRA (SS/DGIS, SINAIS en formato SUIVE). Resultado: panel
 mensual de **72 meses × 66 columnas** y panel semanal de **313 semanas × 62
 columnas** (semana epidemiológica, domingo a sábado). Limitaciones: los
 casos se cuentan por municipio de la **unidad médica** (no de la residencia
-del paciente), el 2020 es atípico por la pandemia (~50 % de los casos de un
-año normal) y desde 2017 reportan más unidades (consultorios de farmacia),
-aunque el total anual se mantiene estable.
+del paciente) y la semana es de **notificación** — puede haber rezago
+administrativo de días o semanas entre la consulta y el registro—, el 2020
+es atípico por la pandemia (~50 % de los casos de un año normal) y desde
+2017 reportan más unidades (consultorios de farmacia), aunque el total
+anual se mantiene estable.
 
 ### 5.2 Datos faltantes y calidad
 
@@ -136,6 +137,12 @@ Muchas "relaciones" son coincidencias de calendario. Ejemplos
   de lo normal para su mes hay ~2–3 % más casos en las semanas siguientes —
   aunque no se repite con la misma fuerza todos los años.
 
+![Temperatura vs casos de IRA, tal cual y comparando solo semanas del mismo mes](figures/rel_antes_despues_semanal.png)
+
+_Figura 2 — Casos de IRA contra temperatura, tal cual (izq.) y comparando
+solo semanas del mismo mes (der.): la pendiente negativa casi desaparece —
+la "relación" era el calendario. Fuente: `3.3-relaciones-visualizacion.ipynb`._
+
 ### 5.5 Correlación
 
 Resultados del panel semanal (`3.4-correlacion.ipynb`, 260 semanas):
@@ -150,6 +157,12 @@ Resultados del panel semanal (`3.4-correlacion.ipynb`, 260 semanas):
 Temperatura, humedad y PM10 se repiten entre sí (0.5–0.7): para un modelo
 conviene resumirlas en un solo índice.
 
+![Correlación de cada exposición con los casos de IRA, tal cual y sin la época](figures/corr_originales_vs_sin_epoca_semanal.png)
+
+_Figura 3 — Correlación de cada exposición con los casos de IRA, tal cual
+y sin la época: las crudas colapsan — eran estacionalidad compartida, no
+asociación. Fuente: `3.4-correlacion.ipynb`._
+
 ### 5.6 Estructura multivariada (PCA / t-SNE)
 
 Con las 5 variables de exposición (`3.5-reduccion-dimensionalidad.ipynb`,
@@ -162,12 +175,33 @@ desaparecen** y el eje principal (47 %) no se relaciona con los casos
 
 ### 5.7 Distribución espacial
 
-El análisis por AGEB queda pendiente: la marginación solo existe a nivel
-municipal (un solo valor para todo Hermosillo). Como habilitador ya está el
-cruce CLUES verificado: las **103 unidades que reportaron IRA** se
-localizaron en el catálogo DGIS con coordenadas (90 consulta externa + 13
-hospitalización), lo que permitirá georreferenciar a nivel colonia/AGEB con
-la cartografía del INEGI.
+El análisis intra-urbano se hizo por **colonia** con la capa CONAPO 2020
+(libreta `3.6`): 76 de las 99 unidades CLUES con coordenadas cayeron dentro
+de una colonia de Hermosillo y concentran el 92 % de los casos. No hay
+gradiente de marginación en la carga de IRA (ρ = 0.14, p = 0.31) ni en la
+respuesta estacional, y las 12 colonias más marginadas (grado Alto/Muy
+alto) no tienen unidad que reporte — quedan invisibles en estos datos.
+
+Esa ausencia es en sí un hallazgo: donde la marginación es mayor no hay
+ningún observatorio de IRA. Las dos lecturas posibles —que los residentes
+no acuden a clínica o que no tienen una cercana— apuntan a la misma
+brecha de acceso a la salud, y es justo en esas colonias donde la
+pregunta de vulnerabilidad no puede responderse con estos datos. La
+limitación clave: la tasa es por **ubicación de la unidad, no residencia
+del paciente**.
+
+![Colonias de Hermosillo por grado de marginación CONAPO 2020 y unidades CLUES que reportan IRA](figures/mapa_marginacion_colonias.png)
+
+_Figura 4 — Colonias de Hermosillo por grado de marginación CONAPO 2020 y
+unidades CLUES que reportan IRA (puntos negros): ninguna unidad llega a las
+colonias de grado Alto/Muy alto. Fuente: `3.6-analisis-marginacion-urbana.ipynb`._
+
+![Casos de IRA por 100,000 hab tras semanas frías o cálidas de lo normal, por grupo de marginación](figures/frio_vs_tasa_por_marginacion.png)
+
+_Figura 5 — Casos de IRA por 100,000 hab tras semanas frías o cálidas de
+lo normal, por grupo de marginación (inmediato y a 4 semanas): los grupos
+observables reaccionan por igual — no hay respuesta diferencial medible.
+Fuente: `3.6-analisis-marginacion-urbana.ipynb`._
 
 ### 5.8 Conclusiones y trabajo futuro
 
@@ -176,10 +210,13 @@ la cartografía del INEGI.
   casos de IRA una vez controlada la estacionalidad. La temporada de
   invierno — y en particular el frío anómalo 3–5 semanas antes — es la
   única señal ambiental consistente, aunque pequeña.
-- **Pregunta de vulnerabilidad:** no contestable todavía; requiere datos por
-  AGEB.
-- **Trabajo futuro:** cartografía AGEB (INEGI) + marginación IMU 2020 para
-  mapas coropléticos; GLM con rezagos del frío; índice único
+- **Pregunta de vulnerabilidad:** el análisis por colonia no muestra
+  gradiente en la carga de atención — y en las colonias más marginadas ni
+  siquiera hay unidad que observe, una brecha de acceso a la salud en sí
+  misma. La pregunta por *residencia* sigue abierta: requiere el domicilio
+  del paciente, no otra geometría.
+- **Trabajo futuro:** fuente de salud con residencia del paciente para
+  rehacer el análisis por colonia; GLM con rezagos del frío; índice único
   temperatura/humedad/PM10; tablero de pronóstico estacional para
   planeación en salud pública.
 - **Utilidad práctica del resultado nulo:** las correlaciones crudas
@@ -193,8 +230,8 @@ la cartografía del INEGI.
 
 - CONAPO. (2020). *Índice de Marginación por Municipio 2015–2020*. Recuperado
   del portal COESPO, Gobierno del Estado de Sonora.
-- INEGI. (2020). *Cartografía Geoestadística — AGEB* (pendiente de
-  integración).
+- CONAPO. (2020). *Índice de Marginación Urbana por Colonia — cartografía*.
+  datos.gob.mx.
 - SMN/CONAGUA. (s.f.). *Resúmenes mensuales de temperaturas y lluvias* y
   *Monitor de Sequía en México*. https://smn.conagua.gob.mx
 - Open-Meteo. (s.f.). *Historical Weather API* (serie diaria Hermosillo,
