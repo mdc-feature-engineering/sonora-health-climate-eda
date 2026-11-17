@@ -16,7 +16,7 @@
 
 | Capa | Notebook | Estado | Responsable |
 |------|----------|--------|-------------|
-| 1. Marginación | `01_ingesta/1.3-indice-marginacion.ipynb` (template) | ⚠️ Ingesta pausada, pero CSV municipales 2010/2015/2020 + IMU 2020 ya están en `data/interim/` (usados por el panel); capa de colonias 2020 integrada en `3.6` | Compañeros |
+| 1. Marginación | `01_ingesta/1.3-indice_-marginacion.ipynb` | ✅ Implementado — IMM municipal 2015/2020 (CSV en `data/interim/marginacion/`, usados por el panel) y cartografía por colonia 2020 (`colonias_marginacion_hermosillo.gpkg`, la usa `3.6`) | Compañeros |
 | 2. Clima (temperatura) | `01_ingesta/1.0-conagua-temperatura.ipynb` | ✅ Implementado | — |
 | 3. Sequía | `01_ingesta/1.2-monitor-sequia.ipynb` | ✅ Implementado | — |
 | 4. Calidad del aire | `01_ingesta/1.4-calidad-aire.ipynb` | ✅ Implementado — RUOA-UNAM, observatorio ERNO (horario 2015–2020) → diario → semanal y mensual en `02_procesamiento/2.4`; ya integrada al panel | Compañeros |
@@ -29,7 +29,7 @@
 |----------|-------------|--------|
 | `1.0-conagua-temperatura.ipynb` | Descarga e ingesta de temperatura media por estación (SMN/CONAGUA) | ✅ |
 | `1.2-monitor-sequia.ipynb` | Monitor de Sequía CONAGUA → formato tidy por año | ✅ |
-| `1.3-indice-marginacion.ipynb` | Índice de marginación — **template TODO** | ⚠️ TODO |
+| `1.3-indice_-marginacion.ipynb` | Índice de marginación municipal (CONAPO) + descarga y recorte de la cartografía por colonia 2020 | ✅ |
 | `1.4-calidad-aire.ipynb` | PM2.5, PM10, O3 horarios de RUOA-ERNO → tabla horaria sin limpiar | ✅ |
 | `1.5-enfermedades-respiratorias.ipynb` | IRAs confirmadas (Salud Sonora) → mensual Hermosillo | ✅ |
 
