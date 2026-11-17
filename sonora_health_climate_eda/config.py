@@ -222,6 +222,17 @@ AIR_QUALITY_CATEGORY_COLORS = dict(
 # finos (p.ej. por unidad médica georreferenciada o apartados epidemiológicos
 # municipales). Si no, el análisis espacial usará jurisdicción sanitaria y el
 # temporal será anual o sub-anual.
+# Catálogo maestro CLUES (Clave Única de Establecimientos de Salud), DGIS.
+# Descarga directa del XLSX nacional (~26 MB); la página del catálogo es
+# http://www.dgis.salud.gob.mx/contenidos/intercambio/clues_gobmx.html
+# Última actualización publicada: octubre 2026 (ESTABLECIMIENTO_SALUD_202610).
+# Fuente del extracto de Hermosillo: ver ``download_clues_data`` en dataset.py.
+CLUES_CATALOG_VERSION = "202610"
+CLUES_CATALOG_URL = (
+    "https://gobi.salud.gob.mx/gobi/catalogos/catalogosmaestros/"
+    f"ESTABLECIMIENTO_SALUD_{CLUES_CATALOG_VERSION}.xlsx"
+)
+
 HEALTH_DATA_SOURCES = {
     # Portal de Datos Abiertos del Gobierno del Estado de Sonora (CKAN).
     # Dataset "Vigilancia Epidemiológica" (SUIVE): semanal × jurisdicción ×

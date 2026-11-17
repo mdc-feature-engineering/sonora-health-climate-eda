@@ -18,10 +18,13 @@ import urllib3
 
 from sonora_health_climate_eda.config import (
     AIR_QUALITY_RAW_DIR,
+    CLUES_CATALOG_URL,
+    CLUES_CATALOG_VERSION,
     CONAGUA_BASE_URL,
     CONAGUA_DROUGHT_URL,
     CONAGUA_TEMPERATURE_REFERER,
     DROUGHT_SEVERITY_MAP,
+    EXTERNAL_DATA_DIR,
     INTERIM_DATA_DIR,
     PANEL_END_YEAR,
     PANEL_START_YEAR,
@@ -330,6 +333,72 @@ def download_air_quality_data(
 
 
 @app.command()
+def download_clues_data(overwrite: bool = False):
+    """Descarga el catálogo maestro CLUES (DGIS) y genera el extracto de Hermosillo.
+
+    Guarda el XLSX nacional en ``data/raw/clues/ESTABLECIMIENTO_SALUD_202610.xlsx``
+    y escribe ``data/external/clues/clues_hermosillo_ira.csv``, el archivo que
+    usa el notebook ``2.5``. Si el CSV de IRA ya está disponible, el extracto
+    contiene solo las unidades que reportaron IRA en Hermosillo; si no, todos
+    los establecimientos del municipio.
+    """
+    raw_path = RAW_DATA_DIR / "clues" / f"ESTABLECIMIENTO_SALUD_{CLUES_CATALOG_VERSION}.xlsx"
+    out_path = EXTERNAL_DATA_DIR / "clues" / "clues_hermosillo_ira.csv"
+
+    if not raw_path.exists() or overwrite:
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Descargando catálogo CLUES desde: {CLUES_CATALOG_URL}")
+        try:
+            res = requests.get(CLUES_CATALOG_URL, timeout=300)
+            res.raise_for_status()
+            raw_path.write_bytes(res.content)
+            logger.success(f"Catálogo CLUES guardado en {raw_path}")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"[ERROR DE RED] No se pudo descargar el catálogo CLUES: {e}")
+            raise
+    else:
+        logger.info(f"El catálogo CLUES ya existe en {raw_path}")
+
+    logger.info("Leyendo catálogo CLUES (puede tardar ~1 minuto)...")
+    df = pd.read_excel(raw_path, sheet_name=0, dtype=str)
+
+    # Unidades que reportaron IRA en Hermosillo (clave_municipio == 30 en la
+    # fuente de salud). Si aún no se tiene el CSV de IRA, el extracto cubre
+    # todos los establecimientos del municipio.
+    salud_path = RAW_DATA_DIR / "salud" / "enf_resp_sonora_2010_2020.csv"
+    if salud_path.exists():
+        reporters = pd.read_csv(salud_path, usecols=["clues", "clave_municipio"], dtype=str)
+        clues_hmo = reporters.loc[reporters["clave_municipio"] == "30", "clues"].unique()
+        df_ext = df[df["CLUES"].isin(clues_hmo)].copy()
+        logger.info(
+            f"{len(df_ext)} unidades de Hermosillo reportaron IRA (cruce con el archivo de salud)."
+        )
+    else:
+        df_ext = df[
+            (df["CLAVE DE LA ENTIDAD"] == "26") & (df["CLAVE DEL MUNICIPIO"] == "030")
+        ].copy()
+        logger.warning(
+            f"No se encontró {salud_path}: el extracto incluye los "
+            f"{len(df_ext)} establecimientos de Hermosillo (todas las unidades, "
+            "no solo las que reportaron IRA)."
+        )
+
+    # Las claves del catálogo vienen con ceros a la izquierda ('030'); el
+    # notebook 2.5 las compara contra enteros.
+    for col in (
+        "CLAVE DE LA ENTIDAD",
+        "CLAVE DEL MUNICIPIO",
+        "CLAVE DE LA LOCALIDAD",
+        "CLAVE DE LA JURISDICCION",
+    ):
+        df_ext[col] = pd.to_numeric(df_ext[col], errors="coerce")
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    df_ext.to_csv(out_path, index=False)
+    logger.success(f"Extracto CLUES de Hermosillo guardado en {out_path} ({len(df_ext)} filas)")
+
+
+@app.command()
 def download_respiratory_health_data():
     """Descarga morbilidad respiratoria — pendiente de fuente y granularidad.
 
@@ -360,6 +429,9 @@ def data_ingestion_pipeline(start_year: int = PANEL_START_YEAR, end_year: int = 
 
     logger.info("Paso 4/5: Descargando calidad del aire (RUOA-ERNO)...")
     download_air_quality_data(start_year, end_year)
+
+    logger.info("Paso 5/5: Descargando catálogo CLUES (DGIS)...")
+    download_clues_data()
 
     logger.info("Capas pendientes (marginación, salud)...")
     download_marginacion_ageb_data()
