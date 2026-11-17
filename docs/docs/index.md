@@ -9,6 +9,12 @@ Sonora. El protocolo metodológico está en
 [`heat_index.md`](heat_index.md) (índice de calor Rothfusz/NWS usado
 para exposición a calor húmedo).
 
+## Reportes
+
+- [Auto EDA — Panel Hermosillo (reporte interactivo)](auto_eda_report.html): análisis
+  exploratorio automático del panel integrado (ydata-profiling), generado por
+  `notebooks/00_auto_eda/0.0-auto-eda.ipynb`.
+
 ## Comandos
 
 El `Makefile` contiene los puntos de entrada principales:

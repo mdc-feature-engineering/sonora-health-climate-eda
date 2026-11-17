@@ -15,6 +15,8 @@
 
 Objetivo del EDA: explorar la relación exposición–morbilidad para definir alcances del producto de datos final (alerta climática → modelo predictivo por AGEB → planeación en salud pública). Detalle en [`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md).
 
+**Público destinatario del producto de datos (tablero):** equipos de planeación y vigilancia en salud pública de Sonora (Secretaría de Salud/DGIS y autoridades municipales de Hermosillo) y protección civil, para anticipar olas de calor, sequía y episodios de contaminación y priorizar las zonas más marginadas.
+
 ## Capas de datos
 
 | # | Capa | Fuente | Estado |
@@ -23,7 +25,7 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 | 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) + Open-Meteo (diario) | Se descarga con el pipeline — 2015–2020 |
 | 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA (quincenal → mensual y semanal) | Se descarga con el pipeline — 2015–2020 |
 | 4 | Calidad del aire (PM2.5, PM10, O3) | RUOA-UNAM, observatorio ERNO Hermosillo (horario → diario → semanal y mensual) | Se descarga con el pipeline — 2015–2020 (PM2.5 sin datos válidos desde jun-2018; jun–nov 2018 sin ningún contaminante) |
-| 5 | Enfermedades respiratorias | Salud Sonora/SUIVE — casos confirmados de IRA, semanal × municipio × sexo × edad × clínica (CLUES), 2010–2020 | **Archivo manual** (no se descarga): ver [Datos que se consiguen a mano](#2-datos-que-se-consiguen-a-mano) |
+| 5 | Enfermedades respiratorias | Secretaría de Salud/DGIS (SINAIS, formato SUIVE) — casos confirmados de IRA, semanal × municipio × sexo × edad × clínica (CLUES), 2010–2020 | **Archivo manual** (no se descarga): ver [Datos que se consiguen a mano](#2-datos-que-se-consiguen-a-mano) |
 
 ### Panel integrado
 
@@ -66,10 +68,11 @@ Por ahora el proyecto cubre la **ingesta** de las capas y el panel integrado, m�
 │
 ├── pyproject.toml
 ├── references            <- Diccionarios de datos por fuente
-│   ├── clima/            <- CONAGUA (temperatura, sequía)
-│   ├── marginacion/      <- (pendiente)
-│   ├── aire/             <- (pendiente)
-│   └── salud/            <- Diccionario de casos confirmados de IRA (Salud Sonora)
+│   ├── fuentes.md        <- Fuentes primarias: descripción, enlaces y fechas de descarga
+│   ├── climate/          <- CONAGUA (temperatura, sequía)
+│   ├── marginacion/      <- Índice de marginación CONAPO
+│   ├── aire/             <- RUOA-UNAM (PM2.5, PM10, O3)
+│   └── salud/            <- Diccionario de casos confirmados de IRA (SS/DGIS, SINAIS/SUIVE)
 ├── reports
 │   ├── figures           <- Gráficos generados
 │   ├── auto_eda_report.html  <- Reporte auto-EDA (ydata-profiling, una vez ejecutado)
@@ -144,6 +147,10 @@ Tarda ~5 minutos (hace pausas para no saturar los servidores) y descarga:
 | Temperatura máxima y mínima SMN | `download-temperature-extremes-data` | `data/raw/temperatura/temperatura_{max,min}_AAAA/` |
 | Open-Meteo diario | `download-openmeteo-data` | `data/raw/openmeteo_hermosillo_daily_1991_2020.csv` |
 | Calidad del aire RUOA | `download-air-quality-data` | `data/raw/aire/ruoa_erno/` |
+| Catálogo CLUES (DGIS) | `download-clues-data` | `data/raw/clues/` → extracto en `data/external/clues/` |
+
+La descripción de cada fuente, su enlace y la fecha en que se descargó está en
+[`references/fuentes.md`](references/fuentes.md).
 
 Cada comando individual se corre como
 `python -m sonora_health_climate_eda.dataset <comando>`. El pipeline avisa que
@@ -158,16 +165,24 @@ entorno (un entorno creado con `uv` no lo trae).
 
 ### 2. Datos que se consiguen a mano
 
-No son públicos ni se descargan con el pipeline; pedirlos al equipo y copiarlos con
-estos nombres exactos (`data/` no se sube a GitHub):
+No es público ni se descarga con el pipeline; pedirlo al equipo y copiarlo con
+este nombre exacto (`data/` no se sube a GitHub):
 
 | Archivo | Qué es | Lo usa |
 |---------|--------|--------|
-| `data/raw/salud/enf_resp_sonora_2010_2020.csv` | Casos confirmados de IRA de Salud Sonora | `2.5` |
-| `data/external/clues/clues_hermosillo_ira.csv` | Extracto del catálogo de clínicas DGIS/SSA (103 clínicas de Hermosillo) | `2.5` |
+| `data/raw/salud/enf_resp_sonora_2010_2020.csv` | Casos confirmados de IRA de la Secretaría de Salud | `2.5` |
 
-Sin ellos corren todos los notebooks de ingesta y procesamiento excepto `2.5`; tampoco
-se puede armar el panel (`3.0`) ni correr los notebooks de EDA que lo usan (`3.1`–`3.5`).
+El extracto `data/external/clues/clues_hermosillo_ira.csv` (las 103 unidades que
+reportaron IRA en Hermosillo) lo genera `download-clues-data`: si el CSV de IRA
+ya está, lo cruza contra el catálogo; si no, el extracto trae todos los
+establecimientos de Hermosillo y el notebook 2.5 funciona igual.
+
+> **Fuente:** SS/DGIS, SINAIS (datos en formato SUIVE), 2010–2020. El extracto CLUES
+> proviene del catálogo oficial DGIS/SSA (`ESTABLECIMIENTO_SALUD_202610.xlsx`).
+
+Sin el CSV de IRA corren todos los notebooks de ingesta y procesamiento excepto
+`2.5`; tampoco se puede armar el panel (`3.0`) ni correr los notebooks de EDA
+que lo usan (`3.1`–`3.5`).
 
 ### 3. Procesar las capas
 

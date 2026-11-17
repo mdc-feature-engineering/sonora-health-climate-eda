@@ -1,12 +1,17 @@
-# Diccionario de Datos: Enfermedades respiratorias — Sonora (SUIVE/Salud Sonora)
+# Diccionario de Datos: Enfermedades respiratorias — Sonora (SS/DGIS, SINAIS / formato SUIVE)
 
 ## Descripción general
 
-Casos **confirmados** de enfermedades respiratorias reportados por la
-Secretaría de Salud del Estado de Sonora (formato SUAVE / Sistema Único de
-Información para la Vigilancia Epidemiológica, SUIVE). Cobertura:
+Casos **confirmados** de enfermedades respiratorias. **Autor y fuente
+institucional:** Secretaría de Salud, a través de la **Dirección General de
+Información en Salud (DGIS)**, sistema **SINAIS** (Sistema Nacional de
+Información en Salud); los datos se recibieron en formato **SUIVE**
+(Sistema Único de Información para la Vigilancia Epidemiológica) por
+conducto de la Secretaría de Salud del Estado de Sonora. Cobertura:
 **2010–2020**, granularidad **semanal epidemiológica × municipio × sexo ×
 grupo de edad × unidad de salud (CLUES)**.
+
+> **Fuente: SS/DGIS, SINAIS (SUIVE), 2010–2020.**
 
 Archivo fuente: `data/raw/salud/enf_resp_sonora_2010_2020.csv`
 (~1.7 M filas, 72 municipios de Sonora).
@@ -104,9 +109,12 @@ semana o por mes: se suman `casos` sobre `genero`, `grupo_edad` y
   neumonías y tuberculosis **no** están en estos archivos.
 - **Cruce CLUES verificado (2026-11):** las 103 unidades únicas que
   reportaron IRA en Hermosillo (2010–2020) se encontraron en el catálogo
-  oficial DGIS/SSA (`ESTABLECIMIENTO_SALUD_202610.xlsx`). Extracto
-  guardado en `data/external/clues/clues_hermosillo_ira.csv` con
-  domicilio, tipo de establecimiento, estatus y coordenadas
-  (LATITUD/LONGITUD) — 90 consulta externa + 13 hospitalización. El
+  oficial DGIS/SSA (`ESTABLECIMIENTO_SALUD_202610.xlsx`). El extracto
+  `data/external/clues/clues_hermosillo_ira.csv` lo genera
+  `python -m sonora_health_climate_eda.dataset download-clues-data`
+  (con domicilio, tipo de establecimiento, estatus y coordenadas
+  LATITUD/LONGITUD — 90 consulta externa + 13 hospitalización). El
   catálogo permite georreferenciar las unidades a nivel colonia/AGEB en
   trabajo futuro.
+  **Fuente del extracto CLUES: SS/DGIS, catálogo ESTABLECIMIENTO_SALUD,
+  actualización 2026-10.**

@@ -200,7 +200,7 @@ Cada notebook 2.x guarda su capa en `data/processed/` en su celda **"Guardar sal
 
 ## Pendientes
 
-- **Catálogo CLUES:** el notebook 2.5 necesita `data/external/clues/clues_hermosillo_ira.csv`, que no está en el repositorio (es un extracto del catálogo DGIS/SSA). Sin él no se generan los parquet de IRA.
+- **Catálogo CLUES:** el notebook 2.5 necesita `data/external/clues/clues_hermosillo_ira.csv`, que no está en el repositorio pero se genera con `python -m sonora_health_climate_eda.dataset download-clues-data` (extracto del catálogo DGIS/SSA). Sin él no se generan los parquet de IRA.
 - **Notebook 2.5:** llama a `health_ira_weekly(location=True)` y `health_ira_monthly(location=True)`, una opción que `panel.py` todavía no tiene.
 - **Semana 53 de 2015:** `processing.construir_panel_temporal()` cuenta semanas ISO (ver capa 6).
 - **Heat index sobreestimado:** decidir con el equipo (ver capa 2).
