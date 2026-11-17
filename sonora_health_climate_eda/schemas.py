@@ -3,10 +3,17 @@
 from datetime import date, datetime
 from math import isnan
 from numbers import Real
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 
 class DatasetSchema(BaseModel):
@@ -251,10 +258,169 @@ class InfeccionesRespiratoriasSonoraSchema(DatasetSchema):
             return None
 
 
+# -------------------------------------------------------------------------
+# Esquema para Open-Meteo diario (data/raw/openmeteo_hermosillo_daily_1991_2020.csv)
+# -------------------------------------------------------------------------
+class OpenMeteoDiarioSchema(DatasetSchema):
+    """Un día de la serie Open-Meteo de Hermosillo (rangos físicos plausibles)."""
+
+    fecha: date
+    tmax_c: float = Field(ge=-10.0, le=55.0)
+    tmin_c: float = Field(ge=-15.0, le=40.0)
+    humedad_rel_pct: float = Field(ge=0.0, le=100.0)
+
+    @field_validator("fecha", mode="before")
+    @classmethod
+    def parse_date(cls, value):
+        if isinstance(value, (pd.Timestamp, datetime)):
+            return value.date()
+        return value
+
+    @model_validator(mode="after")
+    def tmax_no_menor_que_tmin(self):
+        if self.tmax_c < self.tmin_c:
+            raise ValueError("tmax_c es menor que tmin_c")
+        return self
+
+
+# -------------------------------------------------------------------------
+# Esquema para calidad del aire horaria RUOA-ERNO
+# (data/interim/aire/aire_hermosillo_horario.csv, sin limpiar)
+# -------------------------------------------------------------------------
+BanderaRUOA = Literal["OK", "BDL", "OR", "OS"]
+
+
+class AireHorarioSchema(DatasetSchema):
+    """Una hora de RUOA-ERNO tal como viene (antes de la limpieza de 2.4).
+
+    Los valores pueden ser absurdos cuando la bandera es ``OR`` (fuera de
+    rango), así que solo se exige coherencia entre valor y bandera:
+    ``OK`` debe traer un valor no negativo y ``OS`` (fuera de servicio) no
+    debe traer valor.
+    """
+
+    fecha_hora: datetime
+    pm25_ugm3: float | None = None
+    pm25_bandera: BanderaRUOA
+    pm10_ugm3: float | None = None
+    pm10_bandera: BanderaRUOA
+    o3_ppb: float | None = None
+    o3_bandera: BanderaRUOA
+
+    @model_validator(mode="after")
+    def valor_coherente_con_bandera(self):
+        for pol, valor_col in (("pm25", "pm25_ugm3"), ("pm10", "pm10_ugm3"), ("o3", "o3_ppb")):
+            valor = getattr(self, valor_col)
+            bandera = getattr(self, f"{pol}_bandera")
+            if bandera == "OK" and (valor is None or valor < 0):
+                raise ValueError(f"{pol}: bandera OK con valor vacío o negativo ({valor})")
+            if bandera == "OS" and valor is not None:
+                raise ValueError(f"{pol}: bandera OS (fuera de servicio) pero trae valor ({valor})")
+        return self
+
+
+# -------------------------------------------------------------------------
+# Esquema para marginación municipal CONAPO
+# (data/interim/marginacion/marginacion_municipal_AAAA.csv)
+# -------------------------------------------------------------------------
+GradoMarginacion = Literal["Muy bajo", "Bajo", "Medio", "Alto", "Muy alto"]
+
+
+class MarginacionMunicipalSchema(DatasetSchema):
+    """Un municipio de Sonora en el índice de marginación municipal (IMM)."""
+
+    CVE_ENT: int = Field(ge=26, le=26)
+    CVE_MUN: int = Field(ge=26001, le=26072)
+    NOM_MUN: str
+    POB_TOT: int = Field(ge=0)
+    ANALF: float = Field(ge=0, le=100)
+    SBASC: float = Field(ge=0, le=100)
+    OVSDE: float = Field(ge=0, le=100)
+    OVSEE: float = Field(ge=0, le=100)
+    OVSAE: float = Field(ge=0, le=100)
+    OVPT: float = Field(ge=0, le=100)
+    VHAC: float = Field(ge=0, le=100)
+    PO2SM: float = Field(ge=0, le=100)
+    IM: float
+    GM: GradoMarginacion
+    IMN: float = Field(ge=0, le=1)
+
+
+# -------------------------------------------------------------------------
+# Esquema para la capa de colonias CONAPO 2020 (atributos, sin geometría)
+# (data/interim/marginacion/colonias_marginacion_hermosillo.gpkg)
+# -------------------------------------------------------------------------
+class ColoniaMarginacionSchema(DatasetSchema):
+    """Una colonia de Hermosillo de la cartografía de marginación urbana 2020."""
+
+    CVE_COL: str
+    CVE_MUN: Literal["26030"]
+    COLONIA: str | None = None
+    POBTOT: int = Field(ge=0)
+    IMN_2020: float = Field(ge=0, le=1)
+    GM_2020: GradoMarginacion
+
+    @field_validator("CVE_COL", "CVE_MUN", mode="before")
+    @classmethod
+    def to_text(cls, value):
+        return None if value is None else str(value).strip()
+
+
+# -------------------------------------------------------------------------
+# Esquema para el extracto del catálogo CLUES
+# (data/external/clues/clues_hermosillo_ira.csv)
+# -------------------------------------------------------------------------
+class CluesHermosilloSchema(DatasetSchema):
+    """Una unidad de salud de Hermosillo del catálogo CLUES (DGIS).
+
+    Las coordenadas deben caer en Sonora; una unidad con coordenadas vacías
+    o fuera del estado no se puede ubicar en una colonia (notebook 3.6).
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    CLUES: str = Field(pattern=r"^[A-Z]{5}\d{6}$")
+    clave_municipio: int = Field(alias="CLAVE DEL MUNICIPIO", ge=30, le=30)
+    LATITUD: float = Field(ge=26.0, le=33.0)
+    LONGITUD: float = Field(ge=-116.0, le=-108.0)
+
+
+def validate_dataframe(
+    df: pd.DataFrame, schema: type[BaseModel]
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Valida cada fila de ``df`` con ``schema``.
+
+    Devuelve ``(validas, errores)``: las filas que pasaron, ya normalizadas
+    por el esquema, y una tabla con una fila por fila rechazada (índice
+    original, campo y mensaje del primer error).
+    """
+    validas, errores = [], []
+    for idx, record in zip(df.index, df.to_dict("records")):
+        try:
+            validas.append(schema.model_validate(record).model_dump())
+        except ValidationError as e:
+            primero = e.errors()[0]
+            errores.append(
+                {
+                    "fila": idx,
+                    "campo": ".".join(str(p) for p in primero["loc"]) or "(fila)",
+                    "error": primero["msg"],
+                    "valor": primero.get("input") if primero["loc"] else None,
+                }
+            )
+    return pd.DataFrame(validas), pd.DataFrame(errores, columns=["fila", "campo", "error", "valor"])
+
+
 __all__ = [
+    "AireHorarioSchema",
+    "CluesHermosilloSchema",
+    "ColoniaMarginacionSchema",
     "DatasetSchema",
+    "InfeccionesRespiratoriasSonoraSchema",
     "MarginacionAgebSchema",
+    "MarginacionMunicipalSchema",
+    "OpenMeteoDiarioSchema",
     "SequiaSonoraSchema",
     "TemperaturaEstacionSchema",
-    "InfeccionesRespiratoriasSonoraSchema",
+    "validate_dataframe",
 ]
