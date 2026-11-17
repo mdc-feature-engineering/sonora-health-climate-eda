@@ -221,6 +221,11 @@ guarda su tabla en `data/processed/` en la celda "Guardar salida":
 `2.1` va al final porque una de sus celdas compara contra los casos de IRA que
 genera `2.5`.
 
+**6.3 Revisar el resultado:** `notebooks/01_ingesta/1.6-resumen-ingesta.ipynb`
+resume la ingesta: para cada fuente cuenta las filas que llegaron, las valida
+con su esquema pydantic (`sonora_health_climate_eda/schemas.py`) y confirma
+que la tabla procesada de Hermosillo tenga los 72 meses de 2015–2020.
+
 ### Paso 7. Panel integrado y EDA
 
 1. `notebooks/03_eda/3.0-integracion-espacial.ipynb` une todas las capas en

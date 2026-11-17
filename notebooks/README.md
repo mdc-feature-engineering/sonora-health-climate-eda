@@ -32,6 +32,7 @@
 | `1.3-indice_-marginacion.ipynb` | Índice de marginación municipal (CONAPO) + descarga y recorte de la cartografía por colonia 2020 | ✅ |
 | `1.4-calidad-aire.ipynb` | PM2.5, PM10, O3 horarios de RUOA-ERNO → tabla horaria sin limpiar | ✅ |
 | `1.5-enfermedades-respiratorias.ipynb` | IRAs confirmadas (Salud Sonora) → mensual Hermosillo | ✅ |
+| `1.6-resumen-ingesta.ipynb` | Resumen de la ingesta: filas que llegaron, validación pydantic y meses en la tabla procesada, por fuente | ✅ |
 
 ### `02_procesamiento/` — Limpieza y agregación por capa
 
