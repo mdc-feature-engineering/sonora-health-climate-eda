@@ -1,19 +1,19 @@
 # Sonora Health-Climate EDA
 
-> Análisis exploratorio y modelado espacio-temporal de la vulnerabilidad socioeconómica y climática ante enfermedades respiratorias en Hermosillo, Sonora.
+> Condiciones ambientales y salud respiratoria en Hermosillo — análisis exploratorio espacio-temporal de la vulnerabilidad socioeconómica y climática ante enfermedades respiratorias.
 
 ## Preguntas de investigación
 
 **Pregunta general:**
 
-> ¿Cómo inciden el calor extremo, la sequía y la contaminación del aire en la incidencia de enfermedades respiratorias en Hermosillo?
+> ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la incidencia de enfermedades respiratorias en Hermosillo?
 
 **Pregunta específica (hipótesis de vulnerabilidad diferencial):**
 
-> ¿Las zonas más marginadas de Hermosillo son las más afectadas por las enfermedades respiratorias durante olas de calor y sequía?
+> ¿Las zonas más marginadas de Hermosillo son las más afectadas por esas condiciones ambientales?
 
 
-Objetivo del EDA: explorar la relación exposición–morbilidad para definir alcances del producto de datos final (alerta climática → modelo predictivo por AGEB → planeación en salud pública). Detalle en [`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md).
+Objetivo del EDA: explorar la relación exposición–morbilidad para definir alcances del producto de datos final (alerta climática → modelo predictivo a nivel intra-urbano (colonia) → planeación en salud pública). Detalle en [`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md).
 
 **Público destinatario del producto de datos (tablero):** equipos de planeación y vigilancia en salud pública de Sonora (Secretaría de Salud/DGIS y autoridades municipales de Hermosillo) y protección civil, para anticipar olas de calor, sequía y episodios de contaminación y priorizar las zonas más marginadas.
 
@@ -21,7 +21,7 @@ Objetivo del EDA: explorar la relación exposición–morbilidad para definir al
 
 | # | Capa | Fuente | Estado |
 |---|------|--------|--------|
-| 1 | Índice de marginación | CONAPO / INEGI (municipal 2010/2015/2020; AGEB IMU 2020 disponible sin geometría) | Municipal: se descarga con el notebook `1.3` (no con el pipeline). AGEB: pendiente |
+| 1 | Índice de marginación | CONAPO / INEGI (municipal 2010/2015/2020; colonia urbana 2020 con geometría, índice y población) | Municipal: se descarga con el notebook `1.3` (no con el pipeline). Colonia: integrada en `3.6` |
 | 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) + Open-Meteo (diario) | Se descarga con el pipeline — 2015–2020 |
 | 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA (quincenal → mensual y semanal) | Se descarga con el pipeline — 2015–2020 |
 | 4 | Calidad del aire (PM2.5, PM10, O3) | RUOA-UNAM, observatorio ERNO Hermosillo (horario → diario → semanal y mensual) | Se descarga con el pipeline — 2015–2020 (PM2.5 sin datos válidos desde jun-2018; jun–nov 2018 sin ningún contaminante) |
@@ -44,7 +44,7 @@ Qué trae cada capa, sus columnas y lo que hay que tomar en cuenta: [`catalogo_d
 
 ### Alcance actual y próximos pasos
 
-Por ahora el proyecto cubre la **ingesta** de las capas y el panel integrado, más los templates de datos faltantes, outliers, relaciones por visualización, correlación y PCA/t-SNE. El análisis univariado, los rezagos (panel semanal), el GLM y los mapas por AGEB quedan como **plan** hasta tener todos los datos; ver la sección 3 de [`protocolo_eda.md`](docs/docs/protocolo_eda.md).
+El proyecto cubre la ingesta y el procesamiento de las capas, los paneles mensual y semanal integrados, el EDA completo (faltantes, outliers, relaciones, correlación, PCA/t-SNE) y el análisis de marginación por colonia (`3.6`). El GLM y el análisis de rezagos formal (CCF) quedan como **plan**; ver la sección 3 de [`protocolo_eda.md`](docs/docs/protocolo_eda.md).
 
 ## Project Organization
 
@@ -64,7 +64,7 @@ Por ahora el proyecto cubre la **ingesta** de las capas y el panel integrado, m�
 │   ├── 00_auto_eda      <- Auto-EDA con ydata-profiling (reporte HTML)
 │   ├── 01_ingesta        <- Descarga/limpieza de las capas (1.3 descarga la marginación)
 │   ├── 02_procesamiento  <- Revisión y agregación mensual/semanal por capa; guardan cada capa en data/processed/
-│   └── 03_eda            <- 3.0 panel integrado; 3.1–3.5 faltantes, outliers, relaciones, correlación, PCA/t-SNE
+│   └── 03_eda            <- 3.0 panel integrado; 3.1–3.6 faltantes, outliers, relaciones, correlación, PCA/t-SNE, marginación por colonia
 │
 ├── pyproject.toml
 ├── references            <- Diccionarios de datos por fuente
@@ -86,7 +86,7 @@ Por ahora el proyecto cubre la **ingesta** de las capas y el panel integrado, m�
     ├── processing.py     <- Funciones del procesamiento de salud (notebook 2.5)
     ├── schemas.py        <- Esquemas pydantic de los datasets
     ├── utils.py          <- Generación de diccionarios de datos
-    ├── spatial.py        <- Spatial joins AGEB ↔ estaciones, filtros INEGI
+    ├── spatial.py        <- Spatial joins puntos → polígonos (CLUES → colonias), filtros INEGI
     ├── features.py       <- Ingeniería de características
     ├── plots.py          <- Visualizaciones
     └── modeling/         <- Entrenamiento/predicción (stub)
@@ -153,8 +153,9 @@ La descripción de cada fuente, su enlace y la fecha en que se descargó está e
 [`references/fuentes.md`](references/fuentes.md).
 
 Cada comando individual se corre como
-`python -m sonora_health_climate_eda.dataset <comando>`. El pipeline avisa que
-marginación y salud están pendientes: esas capas se obtienen en los pasos 2 y 3.
+`python -m sonora_health_climate_eda.dataset <comando>`. La marginación
+municipal ya está en `data/interim/` y la salud se consigue a mano: esas
+capas se obtienen en los pasos 2 y 3.
 
 Si tienes carpetas `data/raw/temperatura_AAAA/` de una descarga anterior (antes de
 nov-2026), muévelas dentro de `data/raw/temperatura/`: el código ya no las busca en

@@ -1,7 +1,8 @@
 """Descarga e ingesta de las cinco capas de datos del protocolo EDA.
 
 Capas (ver ``docs/docs/protocolo_eda.md``):
-    1. Marginación (CONAPO/INEGI) — municipal implementado; AGEB pendiente.
+    1. Marginación (CONAPO/INEGI) — municipal implementado; colonia vía
+       notebook 3.6 (AGEB descartada).
     2. Clima (CONAGUA/SMN) — temperatura mensual por estación.
     3. Sequía (Monitor de Sequía SMN/CONAGUA).
     4. Calidad del aire (RUOA-UNAM, observatorio ERNO) — CSV horarios por mes.
@@ -258,6 +259,9 @@ def download_marginacion_data(overwrite: bool = False):
 def download_marginacion_ageb_data(overwrite: bool = False):
     """Descarga el índice de marginación urbana a nivel AGEB — template.
 
+    Ya no es necesaria para el nivel intra-urbano: el análisis usa la capa
+    de colonias (CONAPO 2020) en la libreta 3.6. Se conserva por si se
+    retoma el nivel AGEB con la cartografía INEGI.
     TODO: implementar al retomar la capa de marginación (asignada al equipo).
     Fuente: CSV nacional en datos.gob.mx (``config.MARGINACION_AGEB_URL``),
     filtrar Sonora y ``config.TARGET_MUNICIPIOS`` →
@@ -433,15 +437,16 @@ def data_ingestion_pipeline(start_year: int = PANEL_START_YEAR, end_year: int = 
     logger.info("Paso 5/5: Descargando catálogo CLUES (DGIS)...")
     download_clues_data()
 
-    logger.info("Capas pendientes (marginación, salud)...")
+    logger.info("Capas fuera del pipeline (marginación, salud)...")
     download_marginacion_ageb_data()
     download_marginacion_data()
     download_marginacion_municipal_csvs()
     download_respiratory_health_data()
 
     logger.warning(
-        "Pipeline completado con advertencias: las capas de marginación "
-        "y salud están pendientes. Ver docs/docs/protocolo_eda.md."
+        "Pipeline completado: la marginación municipal ya está en "
+        "data/interim/ y la salud se consigue a mano (archivo SUIVE). "
+        "Ver docs/docs/protocolo_eda.md."
     )
 
 
