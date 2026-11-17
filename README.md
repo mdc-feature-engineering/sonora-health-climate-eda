@@ -1,118 +1,124 @@
 # Sonora Health-Climate EDA
 
-> Condiciones ambientales y salud respiratoria en Hermosillo — análisis exploratorio espacio-temporal de la vulnerabilidad socioeconómica y climática ante enfermedades respiratorias.
+> Condiciones ambientales y salud respiratoria en Hermosillo: análisis
+> exploratorio de cómo el calor, el frío, la sequía y la calidad del aire se
+> relacionan con las infecciones respiratorias agudas (IRA), y de si las zonas
+> más marginadas de la ciudad cargan con más casos.
 
-## Preguntas de investigación
+## Preguntas que buscamos responder
 
-**Pregunta general:**
+**Pregunta general**
 
-> ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la incidencia de enfermedades respiratorias en Hermosillo?
+> ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la
+> incidencia de enfermedades respiratorias en Hermosillo?
 
-**Pregunta específica (hipótesis de vulnerabilidad diferencial):**
+**Pregunta específica (vulnerabilidad diferencial)**
 
-> ¿Las zonas más marginadas de Hermosillo son las más afectadas por esas condiciones ambientales?
+> ¿Las zonas más marginadas de Hermosillo son las más afectadas por esas
+> condiciones ambientales?
 
+El EDA cubre 2015–2020 a escala semanal y mensual para todo el municipio, y
+baja a escala de **colonia** para la pregunta de marginación. Sus hallazgos
+sirven para definir el producto de datos final (alerta climática → modelo
+predictivo intra-urbano → planeación en salud pública). El método está en
+[`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md) y los resultados en
+[`reports/reporte_final.md`](reports/reporte_final.md).
 
-Objetivo del EDA: explorar la relación exposición–morbilidad para definir alcances del producto de datos final (alerta climática → modelo predictivo a nivel intra-urbano (colonia) → planeación en salud pública). Detalle en [`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md).
+## Público al que va dirigido
 
-**Público destinatario del producto de datos (tablero):** equipos de planeación y vigilancia en salud pública de Sonora (Secretaría de Salud/DGIS y autoridades municipales de Hermosillo) y protección civil, para anticipar olas de calor, sequía y episodios de contaminación y priorizar las zonas más marginadas.
+**Usuario principal: la Secretaría de Salud del Estado de Sonora**, en
+particular sus áreas de **vigilancia epidemiológica** y de **planeación de
+servicios** (y la Jurisdicción Sanitaria que cubre Hermosillo). Son quienes
+generan los datos de IRA, deciden dónde reforzar consultas, insumos y personal
+en temporada alta, y pueden emitir avisos preventivos a la población.
 
-## Capas de datos
+Otros usuarios que también pueden aprovechar el análisis:
 
-| # | Capa | Fuente | Estado |
-|---|------|--------|--------|
-| 1 | Índice de marginación | CONAPO / INEGI (municipal 2010/2015/2020; colonia urbana 2020 con geometría, índice y población) | Municipal: se descarga con el notebook `1.3` (no con el pipeline). Colonia: integrada en `3.6` |
-| 2 | Temperatura y clima | CONAGUA/SMN (resúmenes mensuales por estación) + Open-Meteo (diario) | Se descarga con el pipeline — 2015–2020 |
-| 3 | Índice de sequía | Monitor de Sequía SMN/CONAGUA (quincenal → mensual y semanal) | Se descarga con el pipeline — 2015–2020 |
-| 4 | Calidad del aire (PM2.5, PM10, O3) | RUOA-UNAM, observatorio ERNO Hermosillo (horario → diario → semanal y mensual) | Se descarga con el pipeline — 2015–2020 (PM2.5 sin datos válidos desde jun-2018; jun–nov 2018 sin ningún contaminante) |
-| 5 | Enfermedades respiratorias | Secretaría de Salud/DGIS (SINAIS, formato SUIVE) — casos confirmados de IRA, semanal × municipio × sexo × edad × clínica (CLUES), 2010–2020 | **Archivo manual** (no se descarga): ver [Datos que se consiguen a mano](#2-datos-que-se-consiguen-a-mano) |
+| Institución | Para qué le sirve |
+|-------------|-------------------|
+| Instituciones de seguridad social (IMSS, ISSSTE, ISSSTESON) | Anticipar la demanda de consulta por IRA en sus unidades de Hermosillo. |
+| Protección Civil (estatal y municipal) | Coordinar avisos ante olas de calor, frío, sequía o mala calidad del aire. |
+| Ayuntamiento de Hermosillo (Desarrollo Social, Salud Municipal) | Priorizar colonias de alta marginación en campañas y programas. |
 
-### Panel integrado
+## Fuentes de datos
 
-Dos paneles de Hermosillo, 2015–2020, con las 5 capas:
+| Capa | Fuente | Qué nos ofrece | Cobertura usada |
+|------|--------|----------------|-----------------|
+| Enfermedades respiratorias (variable respuesta) | Secretaría de Salud / DGIS, SINAIS (formato SUIVE) | Casos confirmados de IRA por semana epidemiológica, municipio, sexo, grupo de edad y unidad médica (CLUES). Es la medida de "cuánta gente se enfermó". | Sonora 2010–2020 (Hermosillo 2015–2020 en el panel) |
+| Unidades de salud | Catálogo CLUES (SS/DGIS) | Ubicación (latitud/longitud) de cada clínica u hospital, para saber en qué colonia está cada unidad que reporta IRA. | Catálogo vigente |
+| Temperatura (estaciones) | CONAGUA / Servicio Meteorológico Nacional | Temperatura media, máxima y mínima mensual por estación meteorológica. | 2015–2020 |
+| Temperatura diaria y humedad | Open-Meteo (Archive API) | Temperatura máxima y mínima y humedad relativa **diarias** de Hermosillo; con ellas se calculan olas de calor, frío e índice de calor. | 1991–2020 (1991–2014 como referencia climática) |
+| Sequía | Monitor de Sequía de México (CONAGUA/SMN) | Categoría de sequía de cada municipio cada quincena (de "anormalmente seco" a "sequía excepcional"). | 2015–2020 |
+| Calidad del aire | RUOA-UNAM, observatorio ERNO (Hermosillo) | Concentraciones horarias de PM2.5, PM10 y ozono; con ellas se calcula el Índice AIRE Y SALUD (NOM-172-SEMARNAT-2019). | 2015–2020 (PM2.5 sin datos válidos desde jun-2018) |
+| Marginación municipal | CONAPO | Índice y grado de marginación de cada municipio (educación, vivienda, ingresos). Un solo valor para todo Hermosillo. | 2015 y 2020 |
+| Marginación por colonia | CONAPO (cartografía urbana 2020) | Polígono, índice, grado de marginación y población de cada colonia; permite comparar zonas **dentro** de la ciudad. | 2020 |
 
-- `data/processed/panel_hermosillo.parquet`: mensual, 72 meses × 66 columnas.
-- `data/processed/panel_hermosillo_semanal.parquet`: semanal (semana epidemiológica, domingo a sábado), 313 semanas × 62 columnas.
+Enlaces, fechas de descarga y detalles de cada fuente:
+[`references/fuentes.md`](references/fuentes.md). Diccionarios de datos por
+fuente en [`references/`](references/).
 
-Qué trae cada capa, sus columnas y lo que hay que tomar en cuenta: [`catalogo_datos_panel.md`](docs/docs/catalogo_datos_panel.md).
-
-- **Clima:** datos diarios de Open-Meteo agregados por mes (olas de calor ≥35 °C y p95, humedad relativa).
-- **Flags:** `mes_ola_calor_p95`, `mes_sequia`, `mes_ola_calor_p95_y_sequia`.
-- **Salud:** un mes suma 4 o 5 semanas (`n_semanas`); `casos_ira_por_semana` permite comparar meses.
-- **Cómo se genera:** cada notebook de `02_procesamiento/` guarda su capa en `data/processed/` y `panel.build_panel_monthly()` / `build_panel_weekly()` las une (panel semanal: `panel_hermosillo_semanal.parquet`, 313 semanas); ver [`3.0-integracion-espacial.ipynb`](notebooks/03_eda/3.0-integracion-espacial.ipynb). Los años se ajustan en `config.py`.
-- **Calidad del aire:** datasets limpios semanal (semana epidemiológica) y mensual en `data/processed/aire/` (notebooks 1.4 y 2.4; serie diaria en `data/interim/aire/`). Los huecos de hasta 2 semanas (1 mes) se interpolan y quedan marcados en `*_interpolado`; los huecos largos quedan en NaN. Cada día se clasifica con el Índice AIRE Y SALUD (bandas de la NOM-172-SEMARNAT-2019), y las tablas semanal y mensual guardan la categoría del peor día y los días Aceptable o peor.
-
-### Alcance actual y próximos pasos
-
-El proyecto cubre la ingesta y el procesamiento de las capas, los paneles mensual y semanal integrados, el EDA completo (faltantes, outliers, relaciones, correlación, PCA/t-SNE) y el análisis de marginación por colonia (`3.6`). El GLM y el análisis de rezagos formal (CCF) quedan como **plan**; ver la sección 3 de [`protocolo_eda.md`](docs/docs/protocolo_eda.md).
-
-## Project Organization
+## Estructura del proyecto
 
 ```
-├── LICENSE
-├── Makefile              <- Comandos de conveniencia (make data, make lint)
-├── README.md
-├── data
-│   ├── external          <- Datos de terceros
-│   ├── interim           <- Datos intermedios transformados
-│   ├── processed         <- Panel integrado
-│   └── raw               <- Datos crudos inmutables
-│
-├── docs                  <- Documentación mkdocs + protocolo_eda.md
-├── models                <- Modelos entrenados y resultados
+├── data                      <- No se sube a GitHub; se genera con los pasos de abajo
+│   ├── raw                   <- Datos crudos tal como se descargan
+│   ├── external              <- Extractos de terceros (catálogo CLUES de Hermosillo)
+│   ├── interim               <- Datos intermedios ya limpios
+│   └── processed             <- Tablas tidy por capa y paneles integrados
+├── docs                      <- Protocolo del EDA y catálogo de variables del panel
 ├── notebooks
-│   ├── 00_auto_eda      <- Auto-EDA con ydata-profiling (reporte HTML)
-│   ├── 01_ingesta        <- Descarga/limpieza de las capas (1.3 descarga la marginación)
-│   ├── 02_procesamiento  <- Revisión y agregación mensual/semanal por capa; guardan cada capa en data/processed/
-│   └── 03_eda            <- 3.0 panel integrado; 3.1–3.6 faltantes, outliers, relaciones, correlación, PCA/t-SNE, marginación por colonia
-│
-├── pyproject.toml
-├── references            <- Diccionarios de datos por fuente
-│   ├── fuentes.md        <- Fuentes primarias: descripción, enlaces y fechas de descarga
-│   ├── climate/          <- CONAGUA (temperatura, sequía)
-│   ├── marginacion/      <- Índice de marginación CONAPO
-│   ├── aire/             <- RUOA-UNAM (PM2.5, PM10, O3)
-│   └── salud/            <- Diccionario de casos confirmados de IRA (SS/DGIS, SINAIS/SUIVE)
-├── reports
-│   ├── figures           <- Gráficos generados
-│   ├── auto_eda_report.html  <- Reporte auto-EDA (ydata-profiling, una vez ejecutado)
-│   └── reporte_final_template.md  <- Template del reporte final (rúbrica)
+│   ├── 00_auto_eda           <- Reporte automático con ydata-profiling
+│   ├── 01_ingesta            <- Una libreta por fuente: descarga y revisión de los datos crudos
+│   ├── 02_procesamiento      <- Una libreta por capa: limpieza y agregación a tablas tidy
+│   └── 03_eda                <- Panel integrado (3.0) y análisis (3.1–3.6)
+├── references                <- Fuentes y diccionarios de datos
+├── reports                   <- Reporte final, presentación y figuras
+├── sonora_health_climate_eda <- Paquete de Python del proyecto
+│   ├── config.py             <- Rutas, URLs de las fuentes y años del análisis
+│   ├── dataset.py            <- Comandos de descarga (pipeline de ingesta)
+│   ├── aire.py               <- Calidad del aire: horario → diario → semanal y mensual
+│   ├── panel.py              <- Transformaciones de cada capa y armado de los paneles
+│   ├── processing.py         <- Procesamiento de salud (lo usa 2.5)
+│   ├── spatial.py            <- Cruces espaciales (unidades de salud → colonias)
+│   └── schemas.py, utils.py, features.py, plots.py
 ├── requirements.txt
-└── sonora_health_climate_eda   <- Paquete Python del proyecto
-    ├── config.py         <- Rutas, URLs de fuentes, constantes del protocolo
-    ├── dataset.py        <- Comandos typer de descarga/ingesta
-    ├── panel.py          <- Funciones de cada capa y paneles integrados mensual y semanal
-    ├── aire.py           <- Calidad del aire: horario → diario → semanal y mensual (comandos typer)
-    ├── processing.py     <- Funciones del procesamiento de salud (notebook 2.5)
-    ├── schemas.py        <- Esquemas pydantic de los datasets
-    ├── utils.py          <- Generación de diccionarios de datos
-    ├── spatial.py        <- Spatial joins puntos → polígonos (CLUES → colonias), filtros INEGI
-    ├── features.py       <- Ingeniería de características
-    ├── plots.py          <- Visualizaciones
-    └── modeling/         <- Entrenamiento/predicción (stub)
+└── pyproject.toml
 ```
 
-## Setup
+El índice completo de libretas está en [`notebooks/README.md`](notebooks/README.md).
 
-Requiere **Python 3.13** (`ydata-profiling` no soporta 3.14). Todos los comandos se
-corren desde la raíz del proyecto.
+## Cómo reproducir el análisis, paso a paso
 
-**Opción A — uv (recomendada).** `uv` crea el entorno e instala sin necesitar `pip`:
+Todos los comandos se corren **desde la raíz del proyecto** (la carpeta que
+contiene este README).
+
+### Paso 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/mdc-feature-engineering/sonora-health-climate-eda.git
+cd sonora-health-climate-eda
+```
+
+### Paso 2. Crear el entorno virtual e instalar dependencias
+
+Se necesita **Python 3.13** (`ydata-profiling` todavía no funciona con 3.14).
+
+**Opción A — con `uv` (recomendada, más rápida):**
 
 ```bash
 uv venv --python 3.13 .venv
 uv pip install -r requirements.txt
 ```
 
-**Opción B — venv + pip.** En Windows el comando de Python 3.13 es `py -3.13`; en
-Mac/Linux, `python3.13`:
+**Opción B — con `venv` y `pip`** (en Windows el ejecutable es `py -3.13`; en
+Mac/Linux, `python3.13`):
 
 ```bash
 py -3.13 -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-**Activar el entorno** (para que `python` sea el del proyecto):
+**Activar el entorno** para que `python` sea el del proyecto:
 
 | Sistema | Comando |
 |---------|---------|
@@ -120,25 +126,24 @@ py -3.13 -m venv .venv
 | Windows (cmd) | `.venv\Scripts\activate.bat` |
 | Mac/Linux | `source .venv/bin/activate` |
 
-Si PowerShell no deja correr `Activate.ps1`, se puede usar el Python del entorno sin
-activarlo: `.venv\Scripts\python.exe` en lugar de `python`. En VS Code, elegir el
-kernel `.venv` en los notebooks.
+Si PowerShell no permite ejecutar `Activate.ps1`, usa directamente
+`.venv\Scripts\python.exe` en lugar de `python` en los comandos de abajo.
 
-Para mantener el entorno igual al del equipo, después de cada `git pull` que cambie
-`requirements.txt` volver a correr la instalación.
+**Para abrir las libretas:** en VS Code (extensión Jupyter) elige el kernel
+`.venv`. Si prefieres Jupyter en el navegador, instálalo en el entorno con
+`pip install jupyterlab` y ábrelo con `jupyter lab`.
 
-## Uso: de cero al panel
+Cada vez que un `git pull` cambie `requirements.txt`, vuelve a correr la
+instalación.
 
-Probado desde un clon limpio (nov-2026): con los mismos datos de entrada, el panel
-sale idéntico.
-
-### 1. Descargar los datos públicos
+### Paso 3. Descargar los datos públicos
 
 ```bash
 python -m sonora_health_climate_eda.dataset data-ingestion-pipeline
 ```
 
-Tarda ~5 minutos (hace pausas para no saturar los servidores) y descarga:
+Tarda unos 5 minutos (hace pausas para no saturar los servidores) y deja todo
+en `data/raw/`:
 
 | Capa | Comando individual | Se guarda en |
 |------|--------------------|--------------|
@@ -147,84 +152,97 @@ Tarda ~5 minutos (hace pausas para no saturar los servidores) y descarga:
 | Temperatura máxima y mínima SMN | `download-temperature-extremes-data` | `data/raw/temperatura/temperatura_{max,min}_AAAA/` |
 | Open-Meteo diario | `download-openmeteo-data` | `data/raw/openmeteo_hermosillo_daily_1991_2020.csv` |
 | Calidad del aire RUOA | `download-air-quality-data` | `data/raw/aire/ruoa_erno/` |
-| Catálogo CLUES (DGIS) | `download-clues-data` | `data/raw/clues/` → extracto en `data/external/clues/` |
+| Catálogo CLUES | `download-clues-data` | `data/raw/clues/` → `data/external/clues/` |
 
-La descripción de cada fuente, su enlace y la fecha en que se descargó está en
-[`references/fuentes.md`](references/fuentes.md).
+Si una capa falla, se puede repetir solo esa con
+`python -m sonora_health_climate_eda.dataset <comando-individual>`.
 
-Cada comando individual se corre como
-`python -m sonora_health_climate_eda.dataset <comando>`. La marginación
-municipal ya está en `data/interim/` y la salud se consigue a mano: esas
-capas se obtienen en los pasos 2 y 3.
+### Paso 4. Copiar el archivo de salud (no es público)
 
-Si tienes carpetas `data/raw/temperatura_AAAA/` de una descarga anterior (antes de
-nov-2026), muévelas dentro de `data/raw/temperatura/`: el código ya no las busca en
-`data/raw/`.
+Los casos de IRA no se descargan: pídelos al equipo y cópialos con este nombre
+exacto:
 
-`make data` hace lo mismo, pero requiere `make` (no viene en Windows) y `pip` en el
-entorno (un entorno creado con `uv` no lo trae).
-
-### 2. Datos que se consiguen a mano
-
-No es público ni se descarga con el pipeline; pedirlo al equipo y copiarlo con
-este nombre exacto (`data/` no se sube a GitHub):
-
-| Archivo | Qué es | Lo usa |
-|---------|--------|--------|
-| `data/raw/salud/enf_resp_sonora_2010_2020.csv` | Casos confirmados de IRA de la Secretaría de Salud | `2.5` |
-
-El extracto `data/external/clues/clues_hermosillo_ira.csv` (las 103 unidades que
-reportaron IRA en Hermosillo) lo genera `download-clues-data`: si el CSV de IRA
-ya está, lo cruza contra el catálogo; si no, el extracto trae todos los
-establecimientos de Hermosillo y el notebook 2.5 funciona igual.
-
-> **Fuente:** SS/DGIS, SINAIS (datos en formato SUIVE), 2010–2020. El extracto CLUES
-> proviene del catálogo oficial DGIS/SSA (`ESTABLECIMIENTO_SALUD_202610.xlsx`).
-
-Sin el CSV de IRA corren todos los notebooks de ingesta y procesamiento excepto
-`2.5`; tampoco se puede armar el panel (`3.0`) ni correr los notebooks de EDA
-que lo usan (`3.1`–`3.5`).
-
-### 3. Procesar las capas
-
-En este orden:
-
-1. **Marginación:** correr `notebooks/01_ingesta/1.3-indice_-marginacion.ipynb` (descarga
-   los Excel de CONAPO y deja los CSV en `data/interim/marginacion/`).
-2. **Calidad del aire:**
-
-   ```bash
-   python -m sonora_health_climate_eda.aire horario
-   python -m sonora_health_climate_eda.aire diario
-   python -m sonora_health_climate_eda.aire semanal
-   python -m sonora_health_climate_eda.aire mensual
-   ```
-
-   El primero arma la tabla horaria (lo mismo que `01_ingesta/1.4-calidad-aire.ipynb`);
-   los otros tres también los hace `02_procesamiento/2.4-procesamiento-calidad-aire.ipynb`.
-3. **Notebooks `02_procesamiento/` 2.0 a 2.5:** cada uno guarda su capa en
-   `data/processed/` en la celda "Guardar salida".
-4. **Panel:** `notebooks/03_eda/3.0-integracion-espacial.ipynb` arma los dos paneles y
-   los paneles reducidos para la EDA (`panel_eda.parquet` y `panel_eda_semanal.parquet`).
-
-Después se pueden correr los notebooks `03_eda/` 3.1 a 3.5.
-
-### Auto-EDA y libretas
-
-```bash
-# Reporte automático (ydata-profiling) — requiere el panel integrado en
-# data/processed/panel_hermosillo.parquet; ver notebooks/00_auto_eda/
-jupyter notebook notebooks/00_auto_eda/0.0-auto-eda.ipynb
+```
+data/raw/salud/enf_resp_sonora_2010_2020.csv
 ```
 
-El índice completo de libretas (incluyendo los templates del rúbrica:
-datos faltantes, outliers, relaciones, correlación y PCA/t-SNE) está en
-[`notebooks/README.md`](notebooks/README.md). El template del reporte final
-está en [`reports/reporte_final_template.md`](reports/reporte_final_template.md).
+Sin este archivo corren todas las libretas de ingesta y procesamiento excepto
+`2.5`, pero no se puede armar el panel ni correr el EDA (`3.0`–`3.6`).
 
-### Lint / formato
+> Si el CSV de IRA ya estaba al correr el paso 3, `download-clues-data` deja en
+> `data/external/clues/clues_hermosillo_ira.csv` solo las 103 unidades que
+> reportaron IRA. Si lo copiaste después, vuelve a correr
+> `python -m sonora_health_climate_eda.dataset download-clues-data --overwrite`.
+
+### Paso 5. Ingesta de marginación (municipal y por colonia)
+
+Abre y ejecuta completa la libreta
+`notebooks/01_ingesta/1.3-indice_-marginacion.ipynb`. Descarga los Excel de
+CONAPO y la cartografía por colonia, y deja en `data/interim/marginacion/`:
+
+- `marginacion_municipal_{2015,2020}.csv` — municipios de Sonora.
+- `colonias_marginacion_hermosillo.gpkg` — las colonias de Hermosillo con su
+  índice y población.
+
+Los servidores de CONAPO a veces bloquean las descargas automáticas. Si la
+libreta falla, el mensaje de error dice qué archivo bajar con el navegador y
+en qué carpeta dejarlo; después se vuelve a correr la celda.
+
+Las demás libretas de `01_ingesta/` (1.0, 1.1, 1.2, 1.4 y 1.5) son opcionales:
+documentan y revisan lo que ya descargó el paso 3.
+
+### Paso 6. Procesamiento a tablas tidy
+
+En este paso cada capa se limpia y se agrega a **tablas tidy**: una fila por
+periodo (semana epidemiológica o mes) y una columna por variable, listas para
+unirse por fecha.
+
+**6.1 Calidad del aire** (de horario a diario, semanal y mensual):
 
 ```bash
-make lint    # ruff format --check + ruff check
-make format  # ruff check --fix + ruff format
+python -m sonora_health_climate_eda.aire horario
+python -m sonora_health_climate_eda.aire diario
+python -m sonora_health_climate_eda.aire semanal
+python -m sonora_health_climate_eda.aire mensual
 ```
+
+**6.2 Libretas de `notebooks/02_procesamiento/`**, en este orden. Cada una
+guarda su tabla en `data/processed/` en la celda "Guardar salida":
+
+| Libreta | Tabla tidy que genera |
+|---------|-----------------------|
+| `2.0-procesamiento-temperatura-smn` | `climate_hermosillo.parquet` (mensual) |
+| `2.2-procesamiento-sequia` | `drought_hermosillo.parquet` (mensual) y `drought_hermosillo_weekly.parquet` |
+| `2.3-procesamiento-marginacion` | `marginacion_hermosillo.parquet` (mensual, interpolada entre 2015 y 2020) |
+| `2.4-procesamiento-calidad-aire` | `aire/` (semanal y mensual; revisa lo que hizo el paso 6.1) |
+| `2.5-procesamiento-salud-ira` | `health_ira_monthly.parquet` y `health_ira_weekly.parquet` |
+| `2.1-procesamiento-calor-openmeteo` | `openmeteo_hermosillo_monthly.parquet` y `openmeteo_hermosillo_weekly.parquet` |
+
+`2.1` va al final porque una de sus celdas compara contra los casos de IRA que
+genera `2.5`.
+
+### Paso 7. Panel integrado y EDA
+
+1. `notebooks/03_eda/3.0-integracion-espacial.ipynb` une todas las capas en
+   los paneles de Hermosillo 2015–2020:
+   - `data/processed/panel_hermosillo.parquet` — mensual (72 meses).
+   - `data/processed/panel_hermosillo_semanal.parquet` — semanal (313 semanas).
+   - `panel_eda.parquet` y `panel_eda_semanal.parquet` — versiones reducidas
+     para el EDA.
+
+   Las columnas de cada panel están descritas en
+   [`docs/docs/catalogo_datos_panel.md`](docs/docs/catalogo_datos_panel.md).
+2. Libretas `3.1` a `3.5`: datos faltantes, outliers, relaciones, correlación
+   y reducción de dimensionalidad.
+3. `3.6-analisis-marginacion-urbana`: marginación por colonia contra carga de
+   IRA (requiere el paso 5).
+4. Opcional: `00_auto_eda/0.0-auto-eda.ipynb` genera el reporte automático
+   `reports/auto_eda_report.html`.
+
+### Atajos
+
+- `make data` corre el paso 3 (requiere `make`, que no viene en Windows, y
+  `pip` en el entorno).
+- `make lint` / `make format` revisan y dan formato al código con `ruff`.
+- Los años del análisis se cambian en `sonora_health_climate_eda/config.py`
+  (`PANEL_START_YEAR`, `PANEL_END_YEAR`).
