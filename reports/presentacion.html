@@ -1,170 +1,214 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
 <base href="file:///Users/benancio/Documents/sonora-health-climate-eda/reports/">
+<title>El impacto de las condiciones ambientales en la salud respiratoria de los hermosillenses</title>
 <style>
-  @page { size: 12.8in 7.2in; margin: 0; }
+  @page { size: 1280px 720px; margin: 0; }
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; margin: 0; color: #1a1a1a;
-         background: #d9d9d9; }
-  .slide { width: 12.8in; height: 7.2in; padding: 0.55in 0.7in; page-break-after: always;
-           display: flex; flex-direction: column; background: #fff; overflow: hidden;
-           margin: 0 auto 0.35in; box-shadow: 0 2px 10px rgba(0,0,0,0.25); }
-  .slide:last-child { page-break-after: avoid; margin-bottom: 0; }
-  @media print {
-    body { background: #fff; }
-    .slide { margin: 0; box-shadow: none; }
+  body {
+    margin: 0; font-family: "Helvetica Neue", Arial, sans-serif;
+    color: #1a1a2e; background: #fff;
   }
-  .kicker { color: #2a78d6; font-weight: 600; font-size: 15pt; text-transform: uppercase; letter-spacing: 1px; }
-  h1 { font-size: 30pt; margin: 0.08in 0 0.18in; }
-  h2 { font-size: 22pt; margin: 0 0 0.15in; }
-  .sub { font-size: 15pt; color: #555; margin-bottom: 0.25in; }
-  ul { font-size: 15.5pt; line-height: 1.5; margin: 0; padding-left: 0.28in; }
-  li { margin-bottom: 0.09in; }
-  .big { font-size: 19pt; line-height: 1.45; }
-  .num { color: #2a78d6; font-weight: 700; }
-  .cols { display: flex; gap: 0.5in; flex: 1; align-items: flex-start; }
+  .slide {
+    width: 1280px; height: 720px; padding: 52px 70px;
+    page-break-after: always; overflow: hidden; position: relative;
+  }
+  .kicker {
+    font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: #4a7ba6; font-weight: bold; margin-bottom: 10px;
+  }
+  h1 { font-size: 46px; line-height: 1.15; margin: 0 0 14px; color: #14395B; }
+  h2 { font-size: 32px; margin: 0 0 20px; color: #14395B; }
+  p, li { font-size: 19px; line-height: 1.5; margin: 10px 0; }
+  .sub { font-size: 16px; color: #777; margin-top: 4px; }
+  .cols { display: flex; gap: 40px; align-items: flex-start; margin-top: 6px; }
   .col { flex: 1; }
-  img { max-width: 100%; max-height: 3.5in; }
-  .col img { display: block; margin: 0 auto; }
-  .figcap { font-size: 11pt; color: #666; margin-top: 0.08in; }
-  .quote { border-left: 5px solid #2a78d6; background: #eef4fc; padding: 0.18in 0.25in;
-           font-size: 17pt; line-height: 1.45; margin-top: 0.15in; }
-  table { border-collapse: collapse; font-size: 14pt; margin: 0.1in auto; }
-  td, th { border-bottom: 1px solid #ddd; padding: 4px 12px; text-align: left; }
-  .foot { margin-top: auto; font-size: 11pt; color: #888; }
-  .cover { justify-content: center; }
-  .tag { display:inline-block; background:#eef4fc; color:#2a78d6; border-radius: 4px;
-         padding: 2px 10px; font-size: 12pt; margin-right: 8px; }
-</style></head><body>
+  img { max-width: 100%; object-fit: contain; }
+  .fig { text-align: center; }
+  .fig img { max-height: 430px; }
+  .figcap { font-size: 14px; color: #666; font-style: italic; margin-top: 8px; }
+  .quote {
+    background: #eef3f8; border-left: 6px solid #14395B;
+    padding: 16px 20px; margin: 18px 0; font-size: 19px; line-height: 1.45;
+  }
+  .qcards { display: flex; gap: 24px; margin: 22px 0; }
+  .qcard {
+    flex: 1; background: #eef3f8; border-radius: 10px;
+    padding: 20px 22px 18px; position: relative;
+    border-top: 5px solid #14395B;
+    font-size: 18px; line-height: 1.45;
+  }
+  .qcard .qn {
+    display: inline-block; background: #14395B; color: #fff;
+    font-size: 13px; font-weight: bold; letter-spacing: 1.5px;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
+  }
+  .alert {
+    background: #fdf3e7; border-left: 6px solid #c97a1e;
+    padding: 16px 20px; margin: 18px 0; font-size: 19px; line-height: 1.45;
+  }
+  .num { color: #14395B; font-weight: bold; font-size: 1.15em; }
+  .big { font-size: 21px; }
+  .kpis { display: flex; gap: 20px; margin-top: 34px; }
+  .kpi {
+    flex: 1; background: #f4f7fa; border-top: 4px solid #14395B;
+    padding: 20px 16px; text-align: center;
+  }
+  .kpi .n { font-size: 44px; font-weight: bold; color: #14395B; }
+  .kpi .t { font-size: 15px; color: #555; margin-top: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 17px; }
+  th, td { border: 1px solid #c4cdd8; padding: 8px 12px; text-align: center; }
+  th { background: #14395B; color: #fff; font-weight: bold; }
+  td:first-child { text-align: left; }
+  tr:nth-child(even) td { background: #f4f7fa; }
+  .foot {
+    position: absolute; bottom: 26px; left: 70px; right: 70px;
+    font-size: 13px; color: #999;
+    border-top: 1px solid #ddd; padding-top: 10px;
+  }
+  .fuentes {
+    position: absolute; bottom: 26px; left: 70px; right: 70px;
+    font-size: 12.5px; color: #777; line-height: 1.55;
+    border-top: 1px solid #ddd; padding-top: 10px;
+  }
+  .fuentes-label {
+    display: inline-block; background: #14395B; color: #fff;
+    font-size: 11px; font-weight: bold; letter-spacing: 1.5px;
+    padding: 3px 10px; border-radius: 12px; margin-right: 10px;
+  }
+  .cover h1 { margin-top: 70px; }
+  .cover .equipo { font-size: 17px; color: #444; margin-top: 26px; }
+</style>
+</head>
+<body>
 
-<!-- SLIDE 1: portada + preguntas -->
-<div class="slide cover">
+<!-- Slide 1: Portada -->
+<section class="slide cover">
   <div class="kicker">Ingeniería de Características — Proyecto EDA</div>
-  <h1>Condiciones ambientales y salud<br>respiratoria en Hermosillo, Sonora</h1>
-  <p class="sub">Análisis exploratorio espacio-temporal 2015–2020<br>
-  Ana Patricia Quiroz · Luis Hiram Hernandez Gutierrez · Victor Andree De La Torre Velazquez</p>
-  <div class="quote">
-    ¿Cómo inciden el <b>calor, el frío, la sequía y la calidad del aire</b> en la
-    incidencia de enfermedades respiratorias?<br><br>
-    ¿Las <b>zonas más marginadas</b> son las más afectadas por esas condiciones?
+  <h1>El impacto de las condiciones ambientales<br>en la salud respiratoria de los hermosillenses</h1>
+  <p class="sub">Calor, frío, sequía, calidad del aire y marginación &middot; Análisis exploratorio 2015–2020</p>
+  <div class="qcards">
+    <div class="qcard">
+      <span class="qn">PREGUNTA 1</span><br>
+      ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la
+      incidencia de enfermedades respiratorias en Hermosillo?
+    </div>
+    <div class="qcard">
+      <span class="qn">PREGUNTA 2</span><br>
+      ¿Las zonas más marginadas de Hermosillo son las más afectadas por
+      esas condiciones ambientales?
+    </div>
   </div>
+  <p class="equipo">Ana Patricia Quiroz Reyes &middot; Luis Hiram Hernández
+  Gutiérrez &middot; Víctor Andree De La Torre Velázquez</p>
   <div class="foot">github.com/mdc-feature-engineering/sonora-health-climate-eda</div>
-</div>
+</section>
 
-<!-- SLIDE 2: datos y método -->
-<div class="slide">
-  <div class="kicker">Datos y método</div>
-  <h2>6 capas integradas en un panel de 313 semanas</h2>
-  <ul>
-    <li><b>Morbilidad:</b> casos confirmados de IRA, semanal epidemiológica
-        <span class="tag">Fuente: SS/DGIS, SINAIS (SUIVE), 2010–2020</span></li>
-    <li><b>Exposición:</b> temperatura SMN + calor diario Open-Meteo · sequía Monitor SMN/CONAGUA ·
-        PM2.5 / PM10 / O3 (RUOA-UNAM, estación ERNO)</li>
-    <li><b>Vulnerabilidad:</b> índice de marginación CONAPO/INEGI · catálogo CLUES DGIS
-        (103 clínicas georreferenciadas)</li>
-    <li><b>Panel:</b> 72 meses × 66 col y 313 semanas × 62 col, Hermosillo 2015–2020</li>
-    <li><b>EDA:</b> auto-EDA (ydata-profiling) + faltantes, outliers (4 técnicas),
-        relaciones, correlación, PCA/t-SNE — con checkpoints de consulta al equipo</li>
-  </ul>
-  <div class="foot">Diccionarios y fuentes: references/ · calidad de datos: esquemas pydantic</div>
-</div>
-
-<!-- SLIDE 3: hallazgo principal -->
-<div class="slide">
+<!-- Slide 2: El calendario manda -->
+<section class="slide">
   <div class="kicker">Hallazgo principal</div>
   <h2>El calendario manda</h2>
   <div class="cols">
-    <div class="col" style="flex: 0.95">
-      <p class="big">Los casos casi se <b>triplican de julio a enero</b> (~1,900 → ~6,200/semana),
-      todos los años.</p>
-      <p class="big">Saber el mes explica el <span class="num">79 %</span> de las subidas y bajadas
-      de casos.</p>
-      <table>
-        <tr><th></th><th>Correlación cruda</th><th>Sin la época</th></tr>
-        <tr><td>Temperatura</td><td>−0.78</td><td><b>−0.02</b></td></tr>
-        <tr><td>PM10</td><td>+0.49</td><td><b>+0.12</b> (n.s.)</td></tr>
-        <tr><td>Sequía</td><td>−17 % casos</td><td><b>+0.1 %</b></td></tr>
-      </table>
-      <p class="figcap">Las "relaciones" con clima y aire eran coincidencias de calendario.</p>
+    <div class="col" style="flex: 0.75">
+      <p class="big">Los casos casi se <b>triplican en invierno</b>
+      (~1,900 &rarr; ~6,200 por semana, todos los años).</p>
+      <p class="big">Solo con saber el mes se explica el
+      <span class="num">79&nbsp;%</span> de las variaciones; el calendario
+      manda sobre todo lo demás.</p>
     </div>
-    <div class="col">
-      <img src="figures/rel_depende_del_mes_semanal.png">
-      <div class="figcap">% de la variación semanal explicada solo por el mes del año (2015–2019).</div>
+    <div class="col fig" style="flex: 1.4">
+      <img src="figures/rel_calendario_semanal.png" alt="Calendario de cada variable por mes" style="max-height: 290px;">
+      <p class="figcap">Figura 1. Cada variable sube en su propio mes.</p>
     </div>
   </div>
-  <div class="quote" style="font-size: 14pt; margin-top: 0.12in">
-    "Cuando baja la temperatura suben los casos, y viceversa. ¿Relación real con la
-    temperatura o efecto estacional? — Resultó ser <b>casi todo estacionalidad</b>;
-    lo único que queda es una señal pequeña del frío anómalo, no del calor."
+  <div class="fig" style="margin-top: 8px;">
+    <img src="figures/rel_perfiles_semanal.png" alt="Perfil anual de casos vs cada variable" style="max-height: 205px;">
+    <p class="figcap">Figura 2. Los casos (azul) siempre pican en enero;
+    cada variable (naranja) pica en un mes distinto — la "trampa del
+    calendario".</p>
   </div>
-</div>
+  <div class="foot">Panel semanal integrado: 313 semanas &times; 62 variables, 6 fuentes</div>
+</section>
 
-<!-- SLIDE 4: lo que sí queda -->
-<div class="slide">
-  <div class="kicker">Más allá de la estacionalidad</div>
-  <h2>Lo que sí queda: una señal pequeña de frío</h2>
-  <div class="cols" style="align-items: center">
-    <div class="col">
-      <ul>
-        <li><b>Frío anómalo rezagado:</b> semanas más frías de lo normal → <b>~2–3 % más casos</b>
-            en las 3–5 semanas siguientes (−0.15, <i>p</i> ≈ 0.05). Fuerte en 2018–2019,
-            casi nula en 2015–2017.</li>
-        <li><b>Ozono:</b> +0.21 con más casos, pero frágil — baja a +0.12 sin 2016, año con
-            lecturas dudosas del sensor.</li>
-        <li><b>Outliers (4 técnicas):</b> IF y LOF coinciden en 7 semanas raras; casi todas
-            eventos reales (PM10 nov-2017, primavera seca 2018, 2020 COVID). Marcadas, no borradas.</li>
-        <li><b>PCA/t-SNE:</b> las semanas se agrupan por temporada; sin la época, los
-            grupos desaparecen y ningún "tipo de semana" tiene más casos (−0.12).</li>
-      </ul>
+<!-- Slide 3: Correlación -->
+<section class="slide">
+  <div class="kicker">Lo que parecía vs. lo que era</div>
+  <h2>Las "relaciones" con el clima eran un espejismo</h2>
+  <div class="cols" style="align-items: center; margin-top: 55px;">
+    <div class="col" style="flex: 0.8">
+      <p style="font-size: 23px;">La temperatura y el polvo <b>parecían</b>
+      mover los casos de enfermedad respiratoria, pero al comparar solo
+      <b>semanas del mismo mes</b>, esa "relación" desaparece.</p>
+      <p style="font-size: 23px;">La única señal que sobrevive es pequeña:
+      cuando una semana es <b>más fría de lo normal</b>, los casos suben un
+      poco tres a cinco semanas después.</p>
     </div>
-    <div class="col">
-      <img src="figures/corr_rezagos_semanal.png">
-      <div class="figcap">Correlación sin la época entre cada exposición y los casos, por
-      semanas de rezago: solo el frío anómalo asoma una señal pequeña a las 3–5 semanas.</div>
+    <div class="col fig" style="flex: 1.2">
+      <img src="figures/rel_antes_despues_semanal.png" alt="Pendiente antes y después de quitar la época" style="max-height: 430px;">
+      <p class="figcap" style="font-size: 15px;">Izquierda: más calor parecía traer
+      195 casos menos por semana. Derecha: comparando con lo normal de su
+      mes, la línea se aplana — era el calendario.</p>
     </div>
   </div>
-  <div class="quote">Ninguna señal apunta al <b>calor extremo</b>: la hipótesis original no se confirma con estos datos.</div>
-</div>
+  <div class="quote" style="margin-top: 45px;">Ninguna señal apunta al
+  <b>calor extremo</b>: la hipótesis original no se confirma con estos
+  datos.</div>
+  <div class="foot">Spearman sobre anomalías mensuales · frío rezagado verificado por permutación de bloques</div>
+</section>
 
-<!-- SLIDE 5: vulnerabilidad por colonia -->
-<div class="slide">
+<!-- Slide 4: Marginación -->
+<section class="slide">
   <div class="kicker">Pregunta de vulnerabilidad</div>
-  <h2>Marginación por colonia: la red de salud no llega a todos</h2>
+  <h2>Marginación por colonia: la red no llega a todos</h2>
   <div class="cols">
     <div class="col">
-      <ul>
-        <li>76 unidades CLUES dentro de colonia → <b>58 de las 657 colonias</b> concentran
-            toda la observación de IRA.</li>
-        <li><b>Sin gradiente marginación–carga:</b> ρ = 0.14; todos los grupos reaccionan
-            por igual al frío anómalo.</li>
-        <li><b>El hueco clave:</b> las 12 colonias más marginadas <b>no tienen ninguna
-            unidad que reporte</b>.</li>
-      </ul>
+      <p class="big">Ubicamos <b>103 clínicas</b> en el mapa: la carga de
+      casos se pudo asignar a <b>58 de las 657 colonias</b> de Hermosillo.</p>
+      <p class="big">Las colonias más marginadas <b>no concentran más
+      casos</b>: la temporada pega igual a todos los grupos y ninguno
+      reacciona peor al frío.</p>
+      <div class="alert"><b>El hueco clave:</b> las 12 colonias más
+      marginadas <b>no tienen ninguna clínica que reporte casos</b>.
+      Donde más haría falta observar, no hay observatorio.</div>
     </div>
-    <div class="col">
-      <img src="figures/mapa_marginacion_colonias.png">
-      <div class="figcap">Marginación por colonia (CONAPO 2020) y unidades CLUES (puntos
-      negros): ninguna unidad cae en las colonias de grado Alto/Muy alto.</div>
+    <div class="col fig" style="flex: 1.15">
+      <img src="figures/mapa_marginacion_colonias.png" alt="Mapa de marginación por colonia" style="max-height: 480px;">
+      <p class="figcap">Marginación por colonia (CONAPO 2020) y unidades
+      CLUES (puntos); ninguna cae en zonas Alto/Muy alto.</p>
     </div>
   </div>
-  <div class="quote">Donde más hace falta observar no hay observatorio — <b>una brecha de
-  acceso a la salud</b>; y los casos son por ubicación de clínica, no por residencia del paciente.</div>
-</div>
+  <div class="foot">Casos por unidad médica, no por residencia del paciente</div>
+</section>
 
-<!-- SLIDE 6: conclusiones -->
-<div class="slide">
-  <div class="kicker">Conclusiones y próximos pasos</div>
+<!-- Slide 5: Conclusión -->
+<section class="slide">
+  <div class="kicker">Conclusión</div>
   <h2>Del "alerta de calor" al pronóstico de invierno</h2>
-  <ul>
-    <li><b>Pregunta general:</b> controlada la estacionalidad, calor extremo, sequía y aire
-        <b>no se asocian</b> con más casos — la única señal es el frío anómalo previo.</li>
-    <li><b>Resultado nulo útil:</b> las alertas de calor/PM10 que sugerían las correlaciones
-        crudas serían esfuerzo mal dirigido — la planeación debe enfocar el invierno.</li>
-    <li><b>Vulnerabilidad:</b> sin gradiente por colonia, y las 12 más marginadas quedan
-        <b>sin observatorio</b> — la pregunta por residencia del paciente sigue abierta.</li>
-    <li><b>Trabajo futuro:</b> GLM con rezagos del frío · índice único temp/humedad/PM10 ·
-        tablero de pronóstico estacional.</li>
-  </ul>
-  <div class="foot">Datos: SS/DGIS, SINAIS (SUIVE) 2010–2020 · CONAGUA/SMN · Open-Meteo · RUOA-UNAM · CONAPO/INEGI · DGIS CLUES</div>
-</div>
+  <p class="big"><b>¿Qué encontramos?</b> La estacionalidad se asocia con
+  la aparición de casos de IRA; la única excepción es una señal débil del
+  frío anómalo.</p>
+  <p class="big"><b>¿Las zonas marginadas sufren más?</b> En las colonias
+  observables, no: el nivel de marginación de cada colonia no parece
+  indicar más casos ni peor reacción al frío. Pero las 12 más marginadas
+  no tienen unidad que las observe: una brecha de acceso en sí misma.</p>
+  <p class="big"><b>¿Qué implica?</b> Las correlaciones crudas habrían
+  llevado a alertas de calor y polvo, un esfuerzo mal dirigido. La
+  planeación debe enfocarse en el invierno.</p>
+  <div class="quote"><b>Siguientes pasos:</b> modelo con rezagos del frío
+  &middot; índice temperatura/humedad/PM10 &middot; tablero de pronóstico
+  estacional.</div>
+  <div class="fuentes">
+    <span class="fuentes-label">FUENTES</span>
+    Casos de IRA: Secretaría de Salud / DGIS, SINAIS (SUIVE) 2010–2020 &middot;
+    Temperatura: SMN-CONAGUA y Open-Meteo &middot;
+    Sequía: Monitor de Sequía, CONAGUA &middot;
+    Aire: RUOA-UNAM, estación ERNO &middot;
+    Marginación: CONAPO/INEGI &middot;
+    Clínicas: catálogo CLUES, DGIS
+  </div>
+</section>
 
-</body></html>
+</body>
+</html>

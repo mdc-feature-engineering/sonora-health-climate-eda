@@ -1,0 +1,252 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<base href="file:///Users/benancio/Documents/sonora-health-climate-eda/reports/">
+<style>
+  @page { size: letter; margin: 0.6in; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+         max-width: 7.3in; margin: 0 auto; color: #1a1a1a;
+         font-size: 10pt; line-height: 1.38; }
+  h1 { font-size: 17pt; border-bottom: 2px solid #2a78d6; padding-bottom: 4px; margin-bottom: 0.35em; }
+  h2 { font-size: 13pt; color: #1a4a8a; margin-top: 0.85em; border-bottom: 1px solid #ddd; padding-bottom: 2px; }
+  h3 { font-size: 11pt; color: #333; margin-top: 0.8em; }
+  p { margin: 0.4em 0; }
+  ul, ol { margin: 0.3em 0; padding-left: 1.35em; }
+  li { margin-bottom: 0.12em; }
+  blockquote { border-left: 4px solid #2a78d6; background: #eef4fc;
+              margin: 0.5em 0; padding: 0.35em 0.85em; }
+  img { max-width: 100%; max-height: 2.9in; display: block; margin: 0.35em auto; }
+  div[style*="display:flex"] img { margin: 0.15em 0; }
+  table { border-collapse: collapse; margin: 0.5em 0; font-size: 9pt; }
+  td, th { border: 1px solid #ccc; padding: 3px 8px; }
+  th { background: #eef4fc; }
+  em { color: #444; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 0.8em 0; }
+  code { background: #f2f2f2; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+</style></head><body>
+<h1>El impacto de las condiciones ambientales y salud respiratoria en Hermosillo</h1>
+<p><strong>Integrantes:</strong> Ana Patricia Quiroz Reyes, Luis Hiram Hernández Gutiérrez,
+Víctor Andree De La Torre Velázquez</p>
+<p><strong>Repositorio:</strong>
+https://github.com/mdc-feature-engineering/sonora-health-climate-eda</p>
+<hr />
+<h2>1. Resumen</h2>
+<p>Partimos de una hipótesis intuitiva: el calor extremo y el aire contaminado
+de Hermosillo deberían enfermar a la gente, y las colonias más pobres
+sufrirían más. Los datos contaron otra historia. Durante seis años y 313
+semanas, las infecciones respiratorias subieron y bajaron siempre al mismo
+ritmo: el calendario. El mes del año explica el 79 % de la variación, y al
+quitar ese efecto, las aparentes relaciones con el clima desaparecen; solo
+persiste una señal débil del frío anómalo, con más casos tres a cinco
+semanas después. Ninguna señal apunta al calor extremo.</p>
+<p>En cuanto a la vulnerabilidad, las colonias marginadas con datos no
+enferman más que las demás ni reaccionan peor al clima. El verdadero
+hallazgo fue que las doce colonias más marginadas de Hermosillo ni siquiera
+tienen una clínica que las observe: una brecha de acceso a la salud en sí
+misma.</p>
+<hr />
+<h2>2. Contexto y preguntas de investigación</h2>
+<p><strong>Preguntas principales:</strong></p>
+<blockquote>
+<ul>
+<li>¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la
+incidencia de enfermedades respiratorias en Hermosillo?</li>
+<li>¿Las zonas más marginadas de Hermosillo son las más afectadas por esas
+condiciones?</li>
+</ul>
+</blockquote>
+<h3>Hallazgo principal: el calendario manda</h3>
+<p>Los casos casi se triplican del verano al invierno (~1,900 → ~6,200 por
+semana). Todas las variables ambientales también tienen su temporada: el
+calor en verano, la sequía en primavera, el ozono en los meses secos. Eso
+hace que, tomados tal cual, <em>todo parezca relacionado con todo</em>. Al quitar
+el efecto del calendario, las correlaciones se desvanecen (temperatura:
+−0.78 → −0.02; PM10: +0.49 → +0.12, n.s.): eran solo estacionalidad
+compartida. Sobreviven apenas el frío anómalo rezagado (−0.15) y una
+asociación frágil del ozono que depende de lecturas dudosas de 2016.</p>
+<p><img src="figures/rel_perfiles_semanal.png" alt="Perfil anual de casos vs cada variable" /></p>
+<p><em>Figura 1. Cada variable sube en su propio mes.</em></p>
+<p><img src="figures/rel_calendario_semanal.png" alt="Calendario de cada variable por mes" /></p>
+<p><em>Figura 2. Cada variable sube en su propio mes (casos en enero, temperatura
+en junio, ozono en abril, PM10 en noviembre).</em></p>
+<hr />
+<h2>3. Datos y limitaciones</h2>
+<p><strong>Fuentes de información utilizadas (2010–2020):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Capa</th>
+<th>Fuente</th>
+<th>Periodo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Casos de IRA</td>
+<td>Secretaría de Salud / DGIS, SINAIS (SUIVE)</td>
+<td>2010–2020</td>
+</tr>
+<tr>
+<td>Clínicas (CLUES)</td>
+<td>Secretaría de Salud / DGIS</td>
+<td>2026</td>
+</tr>
+<tr>
+<td>Temperatura</td>
+<td>SMN/CONAGUA (mensual) + Open-Meteo (diario)</td>
+<td>2015–2020</td>
+</tr>
+<tr>
+<td>Sequía</td>
+<td>Monitor de Sequía, CONAGUA</td>
+<td>2015–2020</td>
+</tr>
+<tr>
+<td>Aire (PM2.5, PM10, O3)</td>
+<td>RUOA-UNAM, estación ERNO</td>
+<td>2015–2020</td>
+</tr>
+<tr>
+<td>Marginación</td>
+<td>CONAPO/INEGI (municipio + colonia)</td>
+<td>2015, 2020</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Limitaciones principales:</strong></p>
+<p>Casos registrados por unidad médica y no por residencia; semana de
+notificación y no de inicio de síntomas; año 2020 atípico por la pandemia
+de COVID-19; incorporación de nuevas unidades desde 2017 (consultorios de
+farmacia); huecos en calidad del aire (PM2.5 sin datos válidos desde junio
+2018); y marginación municipal empleada como contexto general.</p>
+<hr />
+<h2>4. Integración y transformaciones</h2>
+<p>Se estructuró un <strong>panel semanal de 313 semanas por 62 columnas</strong> y un
+panel mensual complementario de 72 meses por 66 columnas para alinear las
+seis capas de fuentes distintas.</p>
+<p><strong>¿Por qué panel semanal?</strong> La adopción de una granularidad semanal se
+sustenta en tres razones metodológicas: (1) <strong>Nativa de la fuente:</strong>
+respeta la periodicidad epidemiológica del SUIVE sin degradar los datos;
+(2) <strong>Visibilidad de rezagos:</strong> permite capturar efectos rezagados de 3 a 5
+semanas que se diluyen en promedios mensuales; y (3) <strong>Captura de eventos
+breves:</strong> preserva la variabilidad de olas de calor, frentes fríos y
+episodios de contaminación que el ciclo mensual borra.</p>
+<p><strong>¿Cuáles fueron las transformaciones clave?</strong> <em>Anomalías:</em> a cada variable
+se le resta su promedio histórico del mes, para comparar enero con enero,
+no enero con julio; <em>interpolación limitada</em> a huecos de ≤ 2 semanas;
+<em>banderas de calidad</em> (año atípico, calor extremo con umbral de 38 °C);
+<em>exclusiones documentadas</em> (PM2.5 por baja cobertura, los 3 diciembres
+dañados del SMN 2015–2017).</p>
+<hr />
+<h2>5. Análisis de correlación</h2>
+<p><strong>El método:</strong> correlación de Spearman entre cada exposición y los casos,
+en dos versiones: tal cual vienen los datos y después de quitar la época
+(anomalías). La comparación de las dos es el corazón del análisis.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Correlación cruda</th>
+<th>Sin la época</th>
+<th>Lectura</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Temperatura</td>
+<td>−0.78</td>
+<td>−0.02</td>
+<td>Era solo el calendario</td>
+</tr>
+<tr>
+<td>PM10</td>
+<td>+0.49</td>
+<td>+0.12 (n.s.)</td>
+<td>Ídem</td>
+</tr>
+<tr>
+<td>Ozono</td>
+<td>+0.21</td>
+<td>+0.12 sin 2016</td>
+<td>Frágil: depende de datos dudosos</td>
+</tr>
+<tr>
+<td>Frío anómalo, rezago 5 sem</td>
+<td>n.a.</td>
+<td>−0.15</td>
+<td>La única que sobrevive</td>
+</tr>
+</tbody>
+</table>
+<p><strong>¿Qué significa que &quot;desaparezcan&quot;?</strong> Que la asociación era estacionalidad
+compartida: dos cosas que siguen el mismo calendario parecen relacionadas
+aunque no se afecten entre sí. Como el consumo de helado y las quemaduras
+de sol, que suben juntos en verano.</p>
+<p><img src="figures/rel_antes_despues_semanal.png" alt="Correlación antes y después de quitar la época" /></p>
+<p><em>Figura 3. La pendiente negativa casi desaparece al comparar solo semanas
+del mismo mes: la &quot;relación&quot; temperatura–casos era el calendario, mostrado
+con puntos en vez de barras.</em></p>
+<hr />
+<h2>6. Análisis de distribución, anomalías y PCA</h2>
+<p><strong>Distribución asimétrica:</strong> los casos de IRA muestran un comportamiento
+estacional y sesgado (semanas típicas de 2,000–4,000 casos frente a picos
+invernales &gt; 6,000). Por ello, se emplearon coeficientes de Spearman y
+métodos robustos que no asumen normalidad.</p>
+<p><strong>Integridad y datos faltantes:</strong> los vacíos se concentran exclusivamente
+en la calidad del aire (PM2.5 y suspensión temporal de la estación en
+2018); el resto del panel operativo se mantuvo completo.</p>
+<p><strong>Detección de outliers:</strong> al aplicar cuatro técnicas de detección (IQR,
+Z-score, Isolation Forest y LOF), los modelos multivariados coincidieron en
+7 semanas críticas correspondientes a eventos reales (episodio de PM10 en
+2017, sequía de 2018 y pandemia en 2020), a excepción de una lectura
+anómala de ozono en diciembre de 2016 atribuida a un error de sensor. En
+consecuencia, no se eliminó ni alteró ningún registro en la base de datos
+final.</p>
+<p><img src="figures/outliers_calendario_semanal.png" alt="Outliers del panel semanal en el tiempo" /></p>
+<p><em>Figura 4. Las semanas &quot;raras&quot; no son ruido aleatorio: se agrupan en
+eventos reales y, sobre todo, en 2020; argumento extra para tratar ese año
+como atípico.</em></p>
+<hr />
+<h2>7. Análisis por colonia y vulnerabilidad</h2>
+<p>Se georreferenciaron 103 clínicas (76 dentro de colonias), asignando la
+carga de IRA a <strong>58 de las 657 colonias</strong> de Hermosillo sin sesgo de
+cobertura (marginación media 0.977 con unidad vs. 0.975 sin unidad); sin
+gradiente marginación–carga (ρ = 0.14) ni reacción diferencial al frío
+anómalo. La colonia Modelo (sede del HIES) muestra una tasa inflada porque
+atiende a toda la ciudad, prueba de que ubicación de clínica ≠ residencia.</p>
+<p><img src="figures/mapa_marginacion_colonias.png" alt="Mapa de marginación por colonia y unidades CLUES" /></p>
+<p><em>Figura 5. Marginación por colonia (CONAPO 2020) y unidades CLUES (puntos
+negros); ninguna cae en las colonias de grado Alto/Muy alto.</em></p>
+<hr />
+<h2>8. Conclusión</h2>
+<p><strong>¿Qué encontramos?</strong> La estacionalidad lo explica casi todo (79 %). Ni el
+calor extremo, ni la sequía, ni el aire se asocian con los casos de IRA una
+vez quitado el efecto del calendario; solo el frío anómalo deja una señal
+débil tres a cinco semanas después.</p>
+<p><strong>¿Las zonas marginadas sufren más?</strong> En las colonias observables, no:
+mismo patrón estacional, misma reacción al frío. Pero las 12 más marginadas
+no tienen ninguna unidad que las observe: una brecha de acceso en sí
+misma.</p>
+<p><strong>¿Qué implica y qué sigue?</strong> Las correlaciones crudas habrían llevado a
+alertas de calor y polvo, es decir, un esfuerzo mal dirigido; la planeación
+debe enfocarse en el invierno. Siguientes pasos: un modelo con rezagos del
+frío, un índice que combine temperatura, humedad y PM10 y un tablero de
+pronóstico estacional.</p>
+<hr />
+<h2>9. Bibliografía</h2>
+<ul>
+<li>CONAPO. (2020). <em>Índice de Marginación por Municipio 2015–2020</em>. Portal
+COESPO, Gobierno del Estado de Sonora.</li>
+<li>CONAPO. (2020). <em>Índice de Marginación Urbana por Colonia</em>
+(cartografía). datos.gob.mx.</li>
+<li>SMN/CONAGUA. (s.f.). <em>Resúmenes mensuales de temperaturas y lluvias</em> y
+<em>Monitor de Sequía en México</em>. https://smn.conagua.gob.mx</li>
+<li>Open-Meteo. (s.f.). <em>Historical Weather API</em> (serie diaria Hermosillo,
+1991–2020). https://archive-api.open-meteo.com</li>
+<li>RUOA-UNAM. (s.f.). <em>Red Universitaria de Observatorios Atmosféricos</em>
+(Observatorio ERNO Hermosillo). https://ruoa.unam.mx</li>
+<li>Secretaría de Salud / Dirección General de Información en Salud (DGIS).
+(2026). <em>Casos confirmados de IRA, Sonora 2010–2020</em> (formato SUIVE).</li>
+<li>Secretaría de Salud / DGIS. (2026). <em>Catálogo de establecimientos de
+salud CLUES</em>. Catálogo ESTABLECIMIENTO_SALUD.</li>
+</ul>
+
+</body></html>
