@@ -50,6 +50,7 @@ un cambio decidido aquí se implementa en `panel.py` para que llegue al panel.
 | `2.3-procesamiento-marginacion.ipynb` | IMM 2010/2015/2020: homologación de columnas e interpolación mensual | 📝 Template |
 | `2.4-procesamiento-calidad-aire.ipynb` | Limpieza horaria (banderas, BDL, artefactos) → diario → mensual (suficiencia 75 %, O3 8 h, días sobre la NOM) | ✅ |
 | `2.5-procesamiento-salud-ira.ipynb` | IRA semanal → mensual: calidad de registros, semanas faltantes, `n_semanas`, 2020 atípico | 📝 Template |
+| `2.6-resumen-procesamiento.ipynb` | Resumen del procesamiento: qué se hizo en cada capa (2.0–2.5), decisiones principales y las seis series mensuales | ✅ |
 
 ### `03_eda/` — Integración y templates del rúbrica
 | Notebook | Descripción | Estado |

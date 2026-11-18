@@ -225,6 +225,8 @@ genera `2.5`.
 resume la ingesta: para cada fuente cuenta las filas que llegaron, las valida
 con su esquema pydantic (`sonora_health_climate_eda/schemas.py`) y confirma
 que la tabla procesada de Hermosillo tenga los 72 meses de 2015–2020.
+`notebooks/02_procesamiento/2.6-resumen-procesamiento.ipynb` resume en una
+sola libreta qué se hizo en cada capa y las decisiones principales.
 
 ### Paso 7. Panel integrado y EDA
 
