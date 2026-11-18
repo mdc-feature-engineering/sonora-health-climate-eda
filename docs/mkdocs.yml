@@ -3,6 +3,7 @@ site_author: PatQz
 
 nav:
   - Inicio: index.md
-  - Protocolo EDA: ../protocolo_eda.md
+  - Protocolo EDA: protocolo_eda.md
   - Catálogo de datos: catalogo_datos_panel.md
+  - Índice de calor: heat_index.md
   - Primeros pasos: getting-started.md

@@ -11,7 +11,7 @@ para exposición a calor húmedo).
 
 ## Reportes
 
-- [Auto EDA — Panel Hermosillo (reporte interactivo)](auto_eda_report.html): análisis
+- [Auto EDA — Panel Hermosillo (reporte interactivo)](../../reports/auto_eda_report.html): análisis
   exploratorio automático del panel integrado (ydata-profiling), generado por
   `notebooks/00_auto_eda/0.0-auto-eda.ipynb`.
 
