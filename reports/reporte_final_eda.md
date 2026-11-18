@@ -1,4 +1,4 @@
-# El impacto de las condiciones ambientales y salud respiratoria en Hermosillo
+# El impacto de las condiciones ambientales en la salud respiratoria de los hermosillenses
 
 **Integrantes:** Ana Patricia Quiroz Reyes, Luis Hiram Hernández Gutiérrez,
 Víctor Andree De La Torre Velázquez

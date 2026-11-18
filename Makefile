@@ -4,7 +4,7 @@
 
 PROJECT_NAME = sonora-health-climate-eda
 PYTHON_VERSION = 3.13
-PYTHON_INTERPRETER = python
+PYTHON_INTERPRETER ?= $(firstword $(wildcard $(if $(VIRTUAL_ENV),$(VIRTUAL_ENV)/bin/python) venv/bin/python .venv/bin/python) python)
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -14,8 +14,7 @@ PYTHON_INTERPRETER = python
 ## Install Python dependencies
 .PHONY: requirements
 requirements:
-	$(PYTHON_INTERPRETER) -m pip install -U pip
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
+	uv pip install --python $(PYTHON_INTERPRETER) -r requirements.txt
 	
 
 
@@ -30,14 +29,14 @@ clean:
 ## Lint using ruff (use `make format` to do formatting)
 .PHONY: lint
 lint:
-	ruff format --check
-	ruff check
+	uvx ruff format --check
+	uvx ruff check
 
 ## Format source code with ruff
 .PHONY: format
 format:
-	ruff check --fix
-	ruff format
+	uvx ruff check --fix
+	uvx ruff format
 
 
 
@@ -52,8 +51,16 @@ format:
 
 ## Make dataset
 .PHONY: data
-data: requirements
+data:
 	$(PYTHON_INTERPRETER) -m sonora_health_climate_eda.dataset data-ingestion-pipeline
+
+## Process air quality (hourly -> daily -> weekly -> monthly)
+.PHONY: aire
+aire:
+	$(PYTHON_INTERPRETER) -m sonora_health_climate_eda.aire horario
+	$(PYTHON_INTERPRETER) -m sonora_health_climate_eda.aire diario
+	$(PYTHON_INTERPRETER) -m sonora_health_climate_eda.aire semanal
+	$(PYTHON_INTERPRETER) -m sonora_health_climate_eda.aire mensual
 
 
 #################################################################################

@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "sonora_health_climate_eda"
 version = "0.1.0"
-description = "EDA de vulnerabilidad socioeconómica y climática ante enfermedades respiratorias en Hermosillo, Sonora"
+description = "EDA del impacto de las condiciones ambientales en la salud respiratoria de Hermosillo, Sonora"
 authors = [
   { name = "PatQz" },
 ]

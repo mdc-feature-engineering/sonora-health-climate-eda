@@ -400,6 +400,7 @@ def drought_hermosillo() -> pd.DataFrame:
     out = out.merge(modal, on="fecha_mes", how="left")
     return out.sort_values("fecha_mes").reset_index(drop=True)
 
+
 def drought_hermosillo_weekly() -> pd.DataFrame:
     """Agrega el Monitor de Sequía (quincenal) a semana epidemiológica.
 
@@ -428,9 +429,8 @@ def drought_hermosillo_weekly() -> pd.DataFrame:
         df.groupby(["fecha_semana", "categoria_sequia"], dropna=False)
         .size()
         .reset_index(name="n")
-        .sort_values(["fecha_semana", "n"], ascending=[True, False]) # <--- ¡Clave corregida aquí!
-        .drop_duplicates(subset=["fecha_semana"])
-        [["fecha_semana", "categoria_sequia"]]
+        .sort_values(["fecha_semana", "n"], ascending=[True, False])  # <--- ¡Clave corregida aquí!
+        .drop_duplicates(subset=["fecha_semana"])[["fecha_semana", "categoria_sequia"]]
     )
 
     out = out.merge(modal, on="fecha_semana", how="left").set_index("fecha_semana")
@@ -440,6 +440,7 @@ def drought_hermosillo_weekly() -> pd.DataFrame:
     weeks = _panel_weeks()
     out = out.reindex(out.index.union(weeks)).sort_index().ffill().reindex(weeks)
     return out.rename_axis("fecha_semana").reset_index()
+
 
 def marginacion_hermosillo() -> pd.DataFrame:
     """Interpolación mensual del IM municipal (y sus indicadores) entre censos 2015 y 2020.
@@ -500,7 +501,7 @@ def marginacion_hermosillo() -> pd.DataFrame:
     return out
 
 
-def health_ira_weekly(location:bool=False) -> pd.DataFrame:
+def health_ira_weekly(location: bool = False) -> pd.DataFrame:
     """Casos confirmados de IRA (Hermosillo) por semana epidemiológica.
 
     Se colapsan ``genero``, ``grupo_edad`` y ``clues``. ``fecha_semana`` es
@@ -526,19 +527,21 @@ def health_ira_weekly(location:bool=False) -> pd.DataFrame:
 
     if not location:
         out = (
-        df.groupby(["fecha_semana", "anio", "semana"], as_index=False)["casos"]
-        .sum()
-        .rename(columns={"casos": "casos_ira_total"})
-        .sort_values("fecha_semana")
-        .reset_index(drop=True)
-    )
+            df.groupby(["fecha_semana", "anio", "semana"], as_index=False)["casos"]
+            .sum()
+            .rename(columns={"casos": "casos_ira_total"})
+            .sort_values("fecha_semana")
+            .reset_index(drop=True)
+        )
 
         logger.info(
             f"Salud IRA Hermosillo: {len(out)} semanas, {int(out['casos_ira_total'].sum())} casos en ventana."
         )
     else:
         out = (
-            df.groupby(["fecha_semana", "anio", "semana", "clave_localidad"], as_index=False)["casos"]
+            df.groupby(["fecha_semana", "anio", "semana", "clave_localidad"], as_index=False)[
+                "casos"
+            ]
             .sum()
             .rename(columns={"casos": "casos_ira_total"})
             .sort_values("fecha_semana")
@@ -573,9 +576,10 @@ def health_ira_monthly(location: bool = False) -> pd.DataFrame:
     out["casos_ira_por_semana"] = out["casos_ira"] / out["n_semanas"]
     return out
 
+
 def build_panel_monthly() -> pd.DataFrame:
     """Construye el panel mensual integrado y lo guarda en processed/."""
-    #Obtener datos de folder processed
+    # Obtener datos de folder processed
     # Calidad del aire: dataset limpio mensual de aire.py (notebook 2.4)
     air_quality = pd.read_csv(AIR_MONTHLY_PATH, parse_dates=["fecha_mes"])
     # Temperatura SMN (notebook 2.0): la usa mes_calor_extremo
@@ -626,9 +630,10 @@ def build_panel_monthly() -> pd.DataFrame:
     logger.success(f"Panel guardado en {out_path} ({len(panel)} meses).")
     return panel
 
+
 def build_panel_weekly() -> pd.DataFrame:
     """Construye el panel semanal integrado y lo guarda en processed/."""
-    #Obtener datos de folder processed
+    # Obtener datos de folder processed
     # Calidad del aire: dataset limpio semanal de aire.py (notebook 2.4). anio y
     # semana ya vienen con IRA (mismas semanas epidemiológicas) y duplicarlas daría
     # anio_x / anio_y; n_dias solo describe la tabla de aire.
@@ -653,7 +658,9 @@ def build_panel_weekly() -> pd.DataFrame:
 
     # Semanas epidemiológicas completas de la ventana (incluye las de diciembre de 2020)
     expected = _panel_weeks()
-    panel = panel.set_index("fecha_semana").reindex(expected).rename_axis("fecha_semana").reset_index()
+    panel = (
+        panel.set_index("fecha_semana").reindex(expected).rename_axis("fecha_semana").reset_index()
+    )
     # Los merges outer pasan las banderas de aire a object; una semana sin fila de aire
     # no se interpoló, así que vuelve a bool con False.
     air_flags = panel.columns[panel.columns.str.endswith("_interpolado")]
@@ -668,9 +675,9 @@ def build_panel_weekly() -> pd.DataFrame:
     panel["semana_sequia"] = (panel["severidad_sequia"] >= DROUGHT_EXTREME_MIN_SEVERITY).astype(
         "boolean"
     )
-    panel["semana_extremo_conjunto"] = (panel["semana_calor_extremo"] & panel["semana_sequia"]).astype(
-        "boolean"
-    )
+    panel["semana_extremo_conjunto"] = (
+        panel["semana_calor_extremo"] & panel["semana_sequia"]
+    ).astype("boolean")
     # Ola de calor formal por umbral fijo (≥35 °C, ≥3 días) y por umbral
     # adaptado P95 estacional (Tmax+Tmin superan su P95 del mes calendario,
     # ≥3 días consecutivos) — ambas desde Open-Meteo diario.
@@ -696,18 +703,18 @@ def air_quality_analysis(df, nombre_panel):
     print("=" * 60)
     print(f"ANÁLISIS DE CALIDAD DEL AIRE: {nombre_panel}")
     print("=" * 60)
-    
+
     total_filas = len(df)
     print(f"Total de periodos en {nombre_panel}: {total_filas}\n")
-    
+
     # 1. Cobertura de datos (conteo y porcentaje de no nulos)
     print("--- 1. COBERTURA DE DATOS (Valores válidos / No nulos) ---")
     contaminantes = {
-        "PM2.5": [c for c in df.columns if 'pm25' in c.lower()],
-        "PM10": [c for c in df.columns if 'pm10' in c.lower()],
-        "Ozono (O3)": [c for c in df.columns if 'o3' in c.lower()]
+        "PM2.5": [c for c in df.columns if "pm25" in c.lower()],
+        "PM10": [c for c in df.columns if "pm10" in c.lower()],
+        "Ozono (O3)": [c for c in df.columns if "o3" in c.lower()],
     }
-    
+
     for nombre_cont, cols in contaminantes.items():
         if cols:
             print(f"[{nombre_cont}]")
@@ -717,14 +724,14 @@ def air_quality_analysis(df, nombre_panel):
                 print(f"  • {col}: {no_nulos} / {total_filas} ({pct:.1f}%)")
         else:
             print(f"[{nombre_cont}] No se encontraron columnas asociadas.")
-            
+
     # 2. Conteo de periodos interpolados
     print("\n--- 2. PERIODOS INTERPOLADOS (*_interpolado) ---")
-    cols_interp = [c for c in df.columns if 'interpolado' in c.lower()]
-    
+    cols_interp = [c for c in df.columns if "interpolado" in c.lower()]
+
     if cols_interp:
         for col in cols_interp:
-            if df[col].dtype in ['bool', 'boolean']:
+            if df[col].dtype in ["bool", "boolean"]:
                 n_interp = df[col].sum()
                 pct_interp = (n_interp / total_filas) * 100
                 print(f"  • {col}: {n_interp} periodos verdaderos ({pct_interp:.1f}%)")

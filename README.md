@@ -1,4 +1,6 @@
-# Sonora Health-Climate EDA
+# El impacto de las condiciones ambientales en la salud respiratoria de los hermosillenses
+
+_Repositorio: `sonora-health-climate-eda`_
 
 > Condiciones ambientales y salud respiratoria en Hermosillo: análisis
 > exploratorio de cómo el calor, el frío, la sequía y la calidad del aire se
@@ -7,22 +9,17 @@
 
 ## Preguntas que buscamos responder
 
-**Pregunta general**
+1. ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la
+   incidencia de enfermedades respiratorias en Hermosillo?
+2. ¿Las zonas más marginadas de Hermosillo son las más afectadas por esas
+   condiciones ambientales?
 
-> ¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en la
-> incidencia de enfermedades respiratorias en Hermosillo?
-
-**Pregunta específica (vulnerabilidad diferencial)**
-
-> ¿Las zonas más marginadas de Hermosillo son las más afectadas por esas
-> condiciones ambientales?
-
-El EDA cubre 2015–2020 a escala semanal y mensual para todo el municipio, y
-baja a escala de **colonia** para la pregunta de marginación. Sus hallazgos
-sirven para definir el producto de datos final (alerta climática → modelo
-predictivo intra-urbano → planeación en salud pública). El método está en
-[`docs/docs/protocolo_eda.md`](docs/docs/protocolo_eda.md) y los resultados en
-[`reports/reporte_final.md`](reports/reporte_final.md).
+El EDA cubre 2015–2020 para todo el municipio y se enfoca **principalmente en
+la escala semanal** (313 semanas epidemiológicas); el panel mensual (72 meses)
+se usa como apoyo. Para la pregunta de marginación baja a escala de
+**colonia**. Sus hallazgos sirven para definir el producto de datos final
+(alerta climática → modelo predictivo intra-urbano → planeación en salud
+pública).
 
 ## Público al que va dirigido
 
@@ -65,14 +62,14 @@ fuente en [`references/`](references/).
 │   ├── external              <- Extractos de terceros (catálogo CLUES de Hermosillo)
 │   ├── interim               <- Datos intermedios ya limpios
 │   └── processed             <- Tablas tidy por capa y paneles integrados
-├── docs                      <- Protocolo del EDA y catálogo de variables del panel
+├── docs                      <- Catálogo de variables del panel
 ├── notebooks
 │   ├── 00_auto_eda           <- Reporte automático con ydata-profiling
 │   ├── 01_ingesta            <- Una libreta por fuente: descarga y revisión de los datos crudos
 │   ├── 02_procesamiento      <- Una libreta por capa: limpieza y agregación a tablas tidy
-│   └── 03_eda                <- Panel integrado (3.0) y análisis (3.1–3.6)
+│   └── 03_eda                <- Panel integrado (3.0), análisis (3.1–3.6) y resumen (3.7)
 ├── references                <- Fuentes y diccionarios de datos
-├── reports                   <- Reporte final, presentación y figuras
+├── reports                   <- Reporte final, presentación, diagramas y figuras
 ├── sonora_health_climate_eda <- Paquete de Python del proyecto
 │   ├── config.py             <- Rutas, URLs de las fuentes y años del análisis
 │   ├── dataset.py            <- Comandos de descarga (pipeline de ingesta)
@@ -248,8 +245,13 @@ sola libreta qué se hizo en cada capa y las decisiones principales.
 
 ### Atajos
 
-- `make data` corre el paso 3 (requiere `make`, que no viene en Windows, y
-  `pip` en el entorno).
-- `make lint` / `make format` revisan y dan formato al código con `ruff`.
+Requieren `make` (no viene en Windows) y `uv`. Usan el Python del entorno
+activado; si no hay ninguno, el de `venv/` o `.venv/` (en ese orden). Para
+forzar otro: `make data PYTHON_INTERPRETER=ruta/a/python`.
+
+- `make requirements` instala las dependencias de `requirements.txt` (paso 2).
+- `make data` corre el paso 3 (descargas).
+- `make aire` corre el paso 6.1 (calidad del aire: horario → mensual).
+- `make lint` / `make format` revisan y dan formato al código con `ruff` (vía `uvx`).
 - Los años del análisis se cambian en `sonora_health_climate_eda/config.py`
   (`PANEL_START_YEAR`, `PANEL_END_YEAR`).

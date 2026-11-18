@@ -245,15 +245,15 @@ class InfeccionesRespiratoriasSonoraSchema(DatasetSchema):
             return cleaned.upper()
         return cleaned
 
-    @field_validator(
-        "clave_municipio", "clave_entidad", "anio", "semana", "casos", mode="before"
-    )
+    @field_validator("clave_municipio", "clave_entidad", "anio", "semana", "casos", mode="before")
     @classmethod
     def convert_numeric_fields(cls, value):
         if value is None or pd.isna(value) or str(value).strip() == "":
             return None
         try:
-            return int(float(value))  # Maneja valores decimales residuales tipo "30.0" desde pandas
+            return int(
+                float(value)
+            )  # Maneja valores decimales residuales tipo "30.0" desde pandas
         except (ValueError, TypeError):
             return None
 
@@ -315,7 +315,9 @@ class AireHorarioSchema(DatasetSchema):
             if bandera == "OK" and (valor is None or valor < 0):
                 raise ValueError(f"{pol}: bandera OK con valor vacío o negativo ({valor})")
             if bandera == "OS" and valor is not None:
-                raise ValueError(f"{pol}: bandera OS (fuera de servicio) pero trae valor ({valor})")
+                raise ValueError(
+                    f"{pol}: bandera OS (fuera de servicio) pero trae valor ({valor})"
+                )
         return self
 
 
@@ -408,7 +410,9 @@ def validate_dataframe(
                     "valor": primero.get("input") if primero["loc"] else None,
                 }
             )
-    return pd.DataFrame(validas), pd.DataFrame(errores, columns=["fila", "campo", "error", "valor"])
+    return pd.DataFrame(validas), pd.DataFrame(
+        errores, columns=["fila", "campo", "error", "valor"]
+    )
 
 
 __all__ = [
