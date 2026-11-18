@@ -162,7 +162,7 @@ como atípico.*
 Se georreferenciaron 103 clínicas (76 dentro de colonias), asignando la
 carga de IRA a **58 de las 657 colonias** de Hermosillo sin sesgo de
 cobertura (marginación media 0.977 con unidad vs. 0.975 sin unidad); sin
-gradiente marginación–carga (ρ = 0.14) ni reacción diferencial al frío
+gradiente marginación–carga (ρ = 0.13) ni reacción diferencial al frío
 anómalo. La colonia Modelo (sede del HIES) muestra una tasa inflada porque
 atiende a toda la ciudad, prueba de que ubicación de clínica ≠ residencia.
 
