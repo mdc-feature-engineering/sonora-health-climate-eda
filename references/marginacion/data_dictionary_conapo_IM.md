@@ -116,10 +116,11 @@ Respaldo oficial: `http://www.conapo.gob.mx/work/models/CONAPO/Marginacion/Datos
 (`stations_to_gdf`, lat/lon del catálogo DGIS) y se les asigna su colonia con
 un spatial join `within` (`assign_stations_to_areas`). Los casos IRA se suman
 por `clues` → colonia y se expresan como casos acumulados por 100,000 hab
-(`POBTOT`). Resultado: 76 unidades dentro de una colonia, 58 colonias con
-observatorio.
+(`POBTOT`). Resultado: 91 unidades dentro de una colonia — tras corregir a
+mano las 17 con coordenadas erróneas del catálogo DGIS (2 de ellas son de
+poblados costeros, fuera del mapa urbano) —, 63 colonias con observatorio.
 
 **Advertencia:** la clave CLUES es la ubicación de la *unidad médica*, no la
 residencia del paciente; la "tasa" por colonia es carga de atención local, no
-incidencia de residentes. Además 599 de las 657 colonias no tienen unidad que
+incidencia de residentes. Además 594 de las 657 colonias no tienen unidad que
 reporte (son "sin observatorio", no cero casos).
