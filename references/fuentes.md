@@ -12,7 +12,7 @@ archivo que usa el proyecto (fecha de descarga de los archivos en
 | Temperatura diaria | Open-Meteo Archive API — Tmax, Tmin y humedad relativa diarias de Hermosillo, 1991–2020 | https://archive-api.open-meteo.com/v1/archive | 13-nov-2026 | `download-openmeteo-data` |
 | Índice de sequía | CONAGUA/SMN — Monitor de Sequía en México, quincenal por municipio | https://smn.conagua.gob.mx/tools/RESOURCES/Monitor%20de%20Sequia%20en%20Mexico/MunicipiosSequia.xlsx | 15-nov-2026 | `download-drought-data` |
 | Calidad del aire | RUOA-UNAM, observatorio ERNO Hermosillo — PM2.5, PM10, O3 horarios, un CSV por mes | https://ruoa.unam.mx/caire/erno/hora/ | 14-nov-2026 | `download-air-quality-data` |
-| Catálogo CLUES | SS/DGIS — catálogo maestro de establecimientos de salud (XLSX nacional, ~26 MB) | https://gobi.salud.gob.mx/gobi/catalogos/catalogosmaestros/ESTABLECIMIENTO_SALUD_202610.xlsx | 16-nov-2026 | `download-clues-data` |
+| Catálogo CLUES | SS/DGIS — catálogo maestro de establecimientos de salud (XLSX nacional, ~26 MB). Ojo: 17 de 103 unidades de Hermosillo traen coordenadas erróneas (en CDMX) o ausentes en el catálogo fuente — ver `salud/nota_calidad_clues_coordenadas.md` | https://gobi.salud.gob.mx/gobi/catalogos/catalogosmaestros/ESTABLECIMIENTO_SALUD_202610.xlsx | 16-nov-2026 | `download-clues-data` |
 | Enfermedades respiratorias | SS/DGIS, SINAIS (formato SUIVE) — casos confirmados de IRA, Sonora 2010–2020 | **Archivo manual** (no se descarga): pedir al equipo | Recibido 10-nov-2026 | `data/raw/salud/enf_resp_sonora_2010_2020.csv` |
 
 Los diccionarios de cada conjunto están en este mismo directorio

@@ -77,7 +77,12 @@ Casos registrados por unidad médica y no por residencia; semana de
 notificación y no de inicio de síntomas; año 2020 atípico por la pandemia
 de COVID-19; incorporación de nuevas unidades desde 2017 (consultorios de
 farmacia); huecos en calidad del aire (PM2.5 sin datos válidos desde junio
-2018); y marginación municipal empleada como contexto general.
+2018); 17 de las 103 unidades CLUES sin coordenadas útiles por registro
+erróneo en el catálogo DGIS (13 apuntan al domicilio corporativo de la
+cadena en CDMX y 4 no traen coordenadas; todas en operación, ~35.6 mil
+casos — 1.6 % del total — excluidos del análisis por colonia, ver
+`references/salud/nota_calidad_clues_coordenadas.md`); y marginación
+municipal empleada como contexto general.
 
 ---
 
@@ -159,12 +164,17 @@ como atípico.*
 
 ## 7. Análisis por colonia y vulnerabilidad
 
-Se georreferenciaron 103 clínicas (76 dentro de colonias), asignando la
-carga de IRA a **58 de las 657 colonias** de Hermosillo sin sesgo de
-cobertura (marginación media 0.977 con unidad vs. 0.975 sin unidad); sin
-gradiente marginación–carga (ρ = 0.13) ni reacción diferencial al frío
-anómalo. La colonia Modelo (sede del HIES) muestra una tasa inflada porque
-atiende a toda la ciudad, prueba de que ubicación de clínica ≠ residencia.
+Las 103 unidades CLUES que reportaron IRA se georreferenciaron tras
+corregir a mano los 17 consultorios de farmacia con coordenadas erróneas
+(en CDMX) o ausentes en el catálogo DGIS; **91** quedaron dentro de
+colonias (2 de las corregidas son de poblados costeros, fuera del mapa
+urbano). Con esas unidades se asigna el 94 % de la carga de IRA a
+**63 de las 657 colonias** de Hermosillo sin sesgo de cobertura
+(marginación media 0.976 con unidad vs. 0.975 sin unidad); sin gradiente
+marginación–carga (ρ = 0.19, p = 0.14) ni reacción diferencial al frío
+anómalo. La colonia Modelo (sede del HIES)
+muestra una tasa inflada porque atiende a toda la ciudad, prueba de que
+ubicación de clínica ≠ residencia.
 
 ![Mapa de marginación por colonia y unidades CLUES](figures/mapa_marginacion_colonias.png)
 

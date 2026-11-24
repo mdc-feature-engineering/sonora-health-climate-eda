@@ -116,7 +116,12 @@ en junio, ozono en abril, PM10 en noviembre).</em></p>
 notificación y no de inicio de síntomas; año 2020 atípico por la pandemia
 de COVID-19; incorporación de nuevas unidades desde 2017 (consultorios de
 farmacia); huecos en calidad del aire (PM2.5 sin datos válidos desde junio
-2018); y marginación municipal empleada como contexto general.</p>
+2018); 17 de las 103 unidades CLUES sin coordenadas útiles por registro
+erróneo en el catálogo DGIS (13 apuntan al domicilio corporativo de la
+cadena en CDMX y 4 no traen coordenadas; todas en operación, ~35.6 mil
+casos — 1.6 % del total — excluidos del análisis por colonia, ver
+<code>references/salud/nota_calidad_clues_coordenadas.md</code>); y marginación
+municipal empleada como contexto general.</p>
 <hr />
 <h2>4. Integración y transformaciones</h2>
 <p>Se estructuró un <strong>panel semanal de 313 semanas por 62 columnas</strong> y un
@@ -206,12 +211,17 @@ eventos reales y, sobre todo, en 2020; argumento extra para tratar ese año
 como atípico.</em></p>
 <hr />
 <h2>7. Análisis por colonia y vulnerabilidad</h2>
-<p>Se georreferenciaron 103 clínicas (76 dentro de colonias), asignando la
-carga de IRA a <strong>58 de las 657 colonias</strong> de Hermosillo sin sesgo de
-cobertura (marginación media 0.977 con unidad vs. 0.975 sin unidad); sin
-gradiente marginación–carga (ρ = 0.13) ni reacción diferencial al frío
-anómalo. La colonia Modelo (sede del HIES) muestra una tasa inflada porque
-atiende a toda la ciudad, prueba de que ubicación de clínica ≠ residencia.</p>
+<p>Las 103 unidades CLUES que reportaron IRA se georreferenciaron tras
+corregir a mano los 17 consultorios de farmacia con coordenadas erróneas
+(en CDMX) o ausentes en el catálogo DGIS; <strong>91</strong> quedaron dentro
+de colonias (2 de las corregidas son de poblados costeros, fuera del mapa
+urbano). Con esas unidades se asigna el 94 % de la carga de IRA a
+<strong>63 de las 657 colonias</strong> de Hermosillo sin sesgo de cobertura
+(marginación media 0.976 con unidad vs. 0.975 sin unidad); sin gradiente
+marginación–carga (ρ = 0.19, p = 0.14) ni reacción diferencial al frío
+anómalo. La colonia Modelo (sede
+del HIES) muestra una tasa inflada porque atiende a toda la ciudad, prueba
+de que ubicación de clínica ≠ residencia.</p>
 <p><img src="figures/mapa_marginacion_colonias.png" alt="Mapa de marginación por colonia y unidades CLUES" /></p>
 <p><em>Figura 5. Marginación por colonia (CONAPO 2020) y unidades CLUES (puntos
 negros); ninguna cae en las colonias de grado Alto/Muy alto.</em></p>
