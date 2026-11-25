@@ -36,4 +36,4 @@ Requiere **Python 3.13** (`ydata-profiling` no es compatible con 3.14).
    `03_eda/` ya tienen el análisis completo (datos faltantes, outliers,
    relaciones, correlación, PCA/t-SNE, marginación urbana) y las libretas
    `1.6`, `2.6` y `3.7` resumen cada etapa. El reporte final está en
-   `reports/reporte_final_eda.md`.
+   `reports/Reporte Final EDA.pdf`.

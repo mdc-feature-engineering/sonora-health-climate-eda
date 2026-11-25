@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hermosillo salud-clima EDA — ingesta y resultados</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap">
+<style>
+* { box-sizing: border-box; }
+.deck-ing * { margin: 0; }
+html, body { margin: 0; background: #D9DCE1; }
+@media print { html, body { background: none; } }
+@page { size: 1920px 1080px; margin: 0; }
+.deck-ing section { width: 1920px; height: 1080px; overflow: hidden; position: relative;
+          margin: 0 auto 40px; page-break-after: always; break-after: page; }
+.deck-ing section:last-child { margin-bottom: 0; page-break-after: avoid; break-after: avoid; }
+.deck-ing h1, .deck-ing h2, .deck-ing h3 { font-weight: 600; }
+.deck-ing .tarjeta .ico { display: block; }
+@media print {
+.deck-ing section { margin: 0; }
+}
+.deck-ing { font-family: 'Inter', Arial, sans-serif; color: #14213D; }
+.deck-ing section { padding: 128px; background: #F6F5F1; display: flex; flex-direction: column; }
+.deck-ing h1, .deck-ing h2, .deck-ing h3 { font-family: 'Space Grotesk', Arial, sans-serif; color: #14213D; }
+.deck-ing .eyebrow { font-size: 28px; font-weight: 600; color: #1F63B5; letter-spacing: 2px; margin-bottom: 20px; }
+.deck-ing .title { font-size: 72px; font-weight: 600; line-height: 1.1; margin-bottom: 56px; }
+.deck-ing .lead { font-size: 34px; color: #4A5568; line-height: 1.4; }
+.deck-ing .cover { background: #14213D; justify-content: center; }
+.deck-ing .cover .eyebrow { color: #8DB8EE; }
+.deck-ing .cover h1 { font-size: 120px; font-weight: 600; color: #F6F5F1; line-height: 1.05; }
+.deck-ing .cover .lead { color: #C9D3E3; margin-top: 40px; width: 1300px; }
+.deck-ing .preguntas { display: flex; gap: 40px; margin-top: 72px; }
+.deck-ing .pregunta { flex: 1; background: #1E2D4F; border-top: 6px solid #8DB8EE; border-radius: 20px; padding: 44px; }
+.deck-ing .pregunta .tag { font-size: 26px; font-weight: 600; color: #8DB8EE; letter-spacing: 2px; margin-bottom: 20px; }
+.deck-ing .pregunta .q { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 38px; color: #F6F5F1; line-height: 1.35; }
+.deck-ing .fuentes { font-size: 26px; color: #14213D; width: 100%; }
+.deck-ing .barras { display: flex; flex-direction: column; gap: 18px; }
+.deck-ing .barra { display: flex; align-items: center; gap: 32px; }
+.deck-ing .barra .nombre { font-size: 28px; font-weight: 600; color: #14213D; width: 300px; }
+.deck-ing .pista { flex: 1; height: 40px; background: #E3E7EE; border-radius: 8px; overflow: hidden; display: flex; }
+.deck-ing .relleno { height: 40px; background: #2A78D6; }
+.deck-ing .rechazo { height: 40px; background: #D9772B; }
+.deck-ing .barra .valor { font-size: 28px; color: #4A5568; width: 420px; }
+.deck-ing .barra .valor-alerta { color: #A84F12; font-weight: 600; }
+.deck-ing .leyenda { display: flex; gap: 48px; align-items: center; margin-top: 36px; }
+.deck-ing .leyenda .item { display: flex; align-items: center; gap: 14px; }
+.deck-ing .leyenda .txt { font-size: 26px; color: #4A5568; }
+.deck-ing .cuadro { width: 28px; height: 28px; border-radius: 6px; background: #2A78D6; }
+.deck-ing .cuadro-rechazo { background: #D9772B; }
+.deck-ing .cuadro-gris { background: #A3ACB9; }
+.deck-ing .resumen { font-size: 30px; color: #4A5568; margin-bottom: 40px; }
+.deck-ing .grafica { background: #FDFDFB; border: 2px solid #D5DAE2; border-radius: 20px; padding: 24px; display: flex; justify-content: center; }
+.deck-ing .hallazgo-cuerpo { display: flex; gap: 80px; align-items: center; }
+.deck-ing .waffle { width: 650px; height: 400px; }
+.deck-ing .cifras { display: flex; flex-direction: column; gap: 36px; flex: 1; }
+.deck-ing .cifra { display: flex; align-items: center; gap: 28px; }
+.deck-ing .cifra .cuadro { flex-shrink: 0; }
+.deck-ing .cifra .n { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 88px; font-weight: 600; line-height: 1; color: #14213D; width: 150px; flex-shrink: 0; }
+.deck-ing .cifra .d { font-size: 30px; color: #4A5568; line-height: 1.35; }
+.deck-ing .cifra .d-alerta { color: #A84F12; font-weight: 600; }
+.deck-ing .eyebrow-alerta { color: #A84F12; }
+.deck-ing .pie { font-size: 28px; color: #4A5568; line-height: 1.4; margin-top: 48px; }
+.deck-ing .final { background: #14213D; }
+.deck-ing .final .eyebrow { color: #8DB8EE; }
+.deck-ing .final .title { color: #F6F5F1; font-size: 96px; }
+.deck-ing .tarjetas { display: flex; gap: 40px; }
+.deck-ing .tarjeta { flex: 1; background: #1E2D4F; border-radius: 24px; padding: 48px; border-top: 8px solid #2A78D6; }
+.deck-ing .tarjeta-alerta { border-top-color: #F2A65A; }
+.deck-ing .tarjeta .ico { width: 64px; height: 64px; color: #8DB8EE; }
+.deck-ing .tarjeta-alerta .ico { color: #F2A65A; }
+.deck-ing .tarjeta .big { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 96px; font-weight: 600; line-height: 1; color: #F6F5F1; margin-top: 32px; }
+.deck-ing .tarjeta h3 { font-size: 40px; font-weight: 600; color: #F6F5F1; margin-top: 24px; }
+.deck-ing .tarjeta .txt { font-size: 28px; color: #C9D3E3; line-height: 1.4; margin-top: 12px; }
+.deck-ing .flow { display: flex; align-items: center; gap: 32px; }
+.deck-ing .step { flex: 1; background: #FDFDFB; border: 2px solid #D5DAE2; border-radius: 20px; padding: 40px; }
+.deck-ing .step h3 { font-size: 40px; font-weight: 600; margin-bottom: 16px; }
+.deck-ing .step .txt { font-size: 28px; color: #4A5568; line-height: 1.4; }
+.deck-ing .step-final { border-color: #2A78D6; }
+.deck-ing .flow-arrow { width: 64px; height: 32px; background: #2A78D6; }
+.deck-ing .ejemplo { font-size: 30px; color: #4A5568; line-height: 1.4; margin-top: 56px; }
+.deck-ing .stats { display: flex; gap: 48px; }
+.deck-ing .stat { flex: 1; border-top: 6px solid #2A78D6; padding-top: 32px; }
+.deck-ing .stat .num { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 96px; font-weight: 600; line-height: 1; color: #14213D; }
+.deck-ing .stat .label { font-size: 30px; color: #4A5568; line-height: 1.35; margin-top: 20px; }
+.deck-ing .alerta { background: #14213D; }
+.deck-ing .alerta .eyebrow { color: #F2A65A; }
+.deck-ing .alerta .title { color: #F6F5F1; }
+.deck-ing .alerta .stat { border-top-color: #F2A65A; }
+.deck-ing .alerta .stat .num { color: #F6F5F1; }
+.deck-ing .alerta .stat .label { color: #C9D3E3; }
+.deck-ing .alerta .nota { font-size: 30px; color: #C9D3E3; line-height: 1.4; margin-top: 64px; }
+.deck-ing .puntos { display: flex; flex-direction: column; gap: 36px; }
+.deck-ing .punto { border-left: 6px solid #2A78D6; padding-left: 32px; }
+.deck-ing .punto h3 { font-size: 44px; font-weight: 600; margin-bottom: 8px; }
+.deck-ing .punto .txt { font-size: 30px; color: #4A5568; line-height: 1.4; }
+.deck-ing .punto-alerta { border-left-color: #D9772B; }
+.deck-ing /* Slides dibuja sus propias líneas de tabla; en el navegador se agregan aquí */
+.fuentes { border-collapse: collapse; }
+.deck-ing .fuentes th { text-align: left; padding: 14px 12px; border-bottom: 2px solid #14213D; }
+.deck-ing .fuentes td { padding: 14px 12px; border-bottom: 1px solid #D5DAE2; }
+
+.deck-ing #reduccion { padding-top: 88px; padding-bottom: 88px; }
+.deck-ing #reduccion .grafica img { height: 560px; }
+.deck-ing #hallazgo { padding-top: 72px; padding-bottom: 56px; }
+.deck-ing #hallazgo .title { font-size: 58px; margin-bottom: 32px; }
+.deck-ing #hallazgo .hallazgo-cuerpo { gap: 56px; }
+.deck-ing #hallazgo .waffle { width: 560px; height: 340px; }
+.deck-ing #hallazgo .cifras { gap: 22px; }
+.deck-ing #hallazgo .cifra .n { font-size: 64px; width: 110px; }
+.deck-ing #hallazgo .cifra .d { font-size: 25px; }
+.deck-ing #hallazgo .pie { font-size: 22px; line-height: 1.35; margin-top: 16px; }
+.deck-v2 {
+    margin: 0; font-family: "Helvetica Neue", Arial, sans-serif;
+    color: #1a1a2e; background: #fff;
+  }
+.deck-v2 .slide {
+    width: 1280px; height: 720px; padding: 52px 70px;
+    page-break-after: always; overflow: hidden; position: relative;
+  }
+.deck-v2 .kicker {
+    font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: #4a7ba6; font-weight: bold; margin-bottom: 10px;
+  }
+.deck-v2 h1 { font-size: 46px; line-height: 1.15; margin: 0 0 14px; color: #14395B; }
+.deck-v2 h2 { font-size: 32px; margin: 0 0 20px; color: #14395B; }
+.deck-v2 p, .deck-v2 li { font-size: 19px; line-height: 1.5; margin: 10px 0; }
+.deck-v2 .sub { font-size: 16px; color: #777; margin-top: 4px; }
+.deck-v2 .cols { display: flex; gap: 40px; align-items: flex-start; margin-top: 6px; }
+.deck-v2 .col { flex: 1; }
+.deck-v2 img { max-width: 100%; object-fit: contain; }
+.deck-v2 .fig { text-align: center; }
+.deck-v2 .fig img { max-height: 430px; }
+.deck-v2 .figcap { font-size: 14px; color: #666; font-style: italic; margin-top: 8px; }
+.deck-v2 .quote {
+    background: #eef3f8; border-left: 6px solid #14395B;
+    padding: 16px 20px; margin: 18px 0; font-size: 19px; line-height: 1.45;
+  }
+.deck-v2 .qcards { display: flex; gap: 24px; margin: 22px 0; }
+.deck-v2 .qcard {
+    flex: 1; background: #eef3f8; border-radius: 10px;
+    padding: 20px 22px 18px; position: relative;
+    border-top: 5px solid #14395B;
+    font-size: 18px; line-height: 1.45;
+  }
+.deck-v2 .qcard .qn {
+    display: inline-block; background: #14395B; color: #fff;
+    font-size: 13px; font-weight: bold; letter-spacing: 1.5px;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
+  }
+.deck-v2 .alert {
+    background: #fdf3e7; border-left: 6px solid #c97a1e;
+    padding: 16px 20px; margin: 18px 0; font-size: 19px; line-height: 1.45;
+  }
+.deck-v2 .num { color: #14395B; font-weight: bold; font-size: 1.15em; }
+.deck-v2 .big { font-size: 21px; }
+.deck-v2 .kpis { display: flex; gap: 20px; margin-top: 34px; }
+.deck-v2 .kpi {
+    flex: 1; background: #f4f7fa; border-top: 4px solid #14395B;
+    padding: 20px 16px; text-align: center;
+  }
+.deck-v2 .kpi .n { font-size: 44px; font-weight: bold; color: #14395B; }
+.deck-v2 .kpi .t { font-size: 15px; color: #555; margin-top: 6px; }
+.deck-v2 table { border-collapse: collapse; width: 100%; font-size: 17px; }
+.deck-v2 th, .deck-v2 td { border: 1px solid #c4cdd8; padding: 8px 12px; text-align: center; }
+.deck-v2 th { background: #14395B; color: #fff; font-weight: bold; }
+.deck-v2 td:first-child { text-align: left; }
+.deck-v2 tr:nth-child(even) td { background: #f4f7fa; }
+.deck-v2 .foot {
+    position: absolute; bottom: 26px; left: 70px; right: 70px;
+    font-size: 13px; color: #999;
+    border-top: 1px solid #ddd; padding-top: 10px;
+  }
+.deck-v2 .fuentes {
+    position: absolute; bottom: 26px; left: 70px; right: 70px;
+    font-size: 12.5px; color: #777; line-height: 1.55;
+    border-top: 1px solid #ddd; padding-top: 10px;
+  }
+.deck-v2 .fuentes-label {
+    display: inline-block; background: #14395B; color: #fff;
+    font-size: 11px; font-weight: bold; letter-spacing: 1.5px;
+    padding: 3px 10px; border-radius: 12px; margin-right: 10px;
+  }
+.deck-v2 .cover h1 { margin-top: 70px; }
+.deck-v2 .cover .equipo { font-size: 17px; color: #444; margin-top: 26px; }
+.deck-v2 .steps { display: flex; gap: 18px; margin-top: 26px; }
+.deck-v2 .step { flex: 1; background: #f4f7fa; border-top: 4px solid #4a7ba6; padding: 18px 18px; font-size: 18px; line-height: 1.45; }
+.deck-v2 .step b.t { display: block; color: #14395B; font-size: 20px; margin-bottom: 6px; }
+.deck-v2 .pill { display: inline-block; background: #14395B; color: #fff; font-size: 13px; font-weight: bold; letter-spacing: 1px; padding: 3px 10px; border-radius: 12px; margin-bottom: 8px; }
+.deck-v2 .muted { color: #666; }
+.deck-v2 .pagen { position: absolute; bottom: 26px; right: 70px; font-size: 13px; color: #999; }
+.deck-v2 .flow { display: flex; align-items: stretch; gap: 10px; margin-top: 50px; }
+.deck-v2 .fbox { flex: 1; background: #f4f7fa; border-top: 4px solid #4a7ba6; padding: 20px 18px; font-size: 18px; line-height: 1.45; }
+.deck-v2 .fbox b.t { display: block; color: #14395B; font-size: 21px; margin-bottom: 6px; }
+.deck-v2 .fbox.final { background: #eef3f8; border-top-color: #14395B; }
+.deck-v2 .farrow { align-self: center; font-size: 34px; color: #4a7ba6; font-weight: bold; }
+
+.deck-v2 section { background: #fff; margin: 0 auto 40px; }
+.deck-v2 section:last-child { margin-bottom: 0; }
+
+</style>
+</head>
+<body>
+<div class="deck-ing">
+
+<section id="cover" class="cover">
+<p class="eyebrow">SONORA HEALTH-CLIMATE EDA</p>
+<h1>Ingesta de datos</h1>
+<div class="preguntas">
+<div class="pregunta"><p class="tag">PREGUNTA GENERAL</p><p class="q">¿Cómo inciden el calor, el frío, la sequía y la calidad del aire en las enfermedades respiratorias en Hermosillo?</p></div>
+<div class="pregunta"><p class="tag">PREGUNTA ESPECÍFICA</p><p class="q">¿Las zonas más marginadas de Hermosillo son las más afectadas por esas condiciones ambientales?</p></div>
+</div>
+
+</section>
+<section id="fuentes">
+<p class="eyebrow">LAS FUENTES</p>
+<h2 class="title">Siete fuentes llegaron a la ingesta</h2>
+<table class="fuentes">
+<tr><th style="width:17%">Fuente</th><th style="width:34%">Qué trae</th><th style="width:23%">Origen</th><th style="width:14%">Formato nativo</th><th style="width:12%; text-align:right">Filas</th></tr>
+<tr><td>Temperatura SMN</td><td>Temperatura mensual por estación</td><td>CONAGUA / SMN</td><td>216 CSV</td><td style="text-align:right">77,027</td></tr>
+<tr><td>Open-Meteo</td><td>Temperatura y humedad diarias</td><td>Open-Meteo</td><td>JSON (API)</td><td style="text-align:right">10,958</td></tr>
+<tr><td>Sequía</td><td>Sequía por municipio y quincena</td><td>CONAGUA / SMN</td><td>Excel (XLSX)</td><td style="text-align:right">10,368</td></tr>
+<tr><td>Marginación</td><td>Índice por municipio, 2015 y 2020</td><td>CONAPO</td><td>2 Excel</td><td style="text-align:right">144</td></tr>
+<tr><td>Calidad del aire</td><td>PM2.5, PM10 y ozono cada hora</td><td>RUOA-UNAM, ERNO</td><td>72 CSV</td><td style="text-align:right">52,608</td></tr>
+<tr><td>Salud (IRA)</td><td>Casos por semana y unidad médica</td><td>Secretaría de Salud</td><td>CSV (manual)</td><td style="text-align:right">1,732,444</td></tr>
+<tr><td>Catálogo CLUES</td><td>Ubicación de las unidades médicas</td><td>Secretaría de Salud</td><td>Excel (XLSX)</td><td style="text-align:right">103</td></tr>
+</table>
+
+</section>
+<section id="validacion">
+<p class="eyebrow">CÓMO VALIDAMOS</p>
+<h2 class="title">Cada fila se revisa con un esquema pydantic</h2>
+<div class="flow">
+<div class="step"><h3>1 · Esquema</h3><p class="txt">Define cómo debe verse una fila: columnas, tipos y rangos permitidos.</p></div>
+<svg class="flow-arrow-svg" width="64" height="32" viewBox="0 0 64 32" aria-hidden="true"><path d="M0 10H38V0L64 16L38 32V22H0Z" fill="#2A78D6"/></svg>
+<div class="step"><h3>2 · Revisar</h3><p class="txt">validate_dataframe pasa la tabla por el esquema, fila por fila.</p></div>
+<svg class="flow-arrow-svg" width="64" height="32" viewBox="0 0 64 32" aria-hidden="true"><path d="M0 10H38V0L64 16L38 32V22H0Z" fill="#2A78D6"/></svg>
+<div class="step step-final"><h3>3 · Resultado</h3><p class="txt">Filas válidas y una lista de errores con el campo y el motivo.</p></div>
+</div>
+<p class="ejemplo">Ejemplo de reglas: la humedad debe estar entre 0 y 100 %; la semana epidemiológica, entre 1 y 53; las coordenadas de una clínica, dentro de Sonora.</p>
+
+</section>
+<section id="resultado">
+<p class="eyebrow">RESULTADO</p>
+<h2 class="title">Filas que pasaron la validación</h2>
+<div class="barras">
+<div class="barra"><p class="nombre">Temperatura SMN</p><div class="pista"><div class="relleno" style="width:100%"></div></div><p class="valor">77,027 de 77,027 · 100 %</p></div>
+<div class="barra"><p class="nombre">Open-Meteo</p><div class="pista"><div class="relleno" style="width:100%"></div></div><p class="valor">10,958 de 10,958 · 100 %</p></div>
+<div class="barra"><p class="nombre">Sequía</p><div class="pista"><div class="relleno" style="width:100%"></div></div><p class="valor">10,368 de 10,368 · 100 %</p></div>
+<div class="barra"><p class="nombre">Marginación</p><div class="pista"><div class="relleno" style="width:100%"></div></div><p class="valor">144 de 144 · 100 %</p></div>
+<div class="barra"><p class="nombre">Calidad del aire</p><div class="pista"><div class="relleno" style="width:100%"></div></div><p class="valor">52,608 de 52,608 · 100 %</p></div>
+<div class="barra"><p class="nombre">Salud (IRA)</p><div class="pista"><div class="relleno" style="width:100%"></div></div><p class="valor">1,732,444 de 1,732,444 · 100 %</p></div>
+<div class="barra"><p class="nombre">Catálogo CLUES</p><div class="pista"><div class="relleno" style="width:83.5%"></div><div class="rechazo" style="width:16.5%"></div></div><p class="valor valor-alerta">86 de 103 · 83.5 %</p></div>
+</div>
+<div class="leyenda">
+<div class="item"><div class="cuadro"></div><p class="txt">Filas válidas</p></div>
+<div class="item"><div class="cuadro cuadro-rechazo"></div><p class="txt">Filas rechazadas</p></div>
+<p class="txt">1.8 M filas revisadas · 313 de 313 semanas en cada tabla procesada</p>
+</div>
+
+</section>
+<section id="reduccion">
+<p class="eyebrow">DE LA INGESTA A HERMOSILLO</p>
+<h2 class="title">Miles de filas se vuelven 313 semanas</h2>
+<div class="grafica">
+<img src="figures/ingesta_raw_a_procesado.png" alt="Barras horizontales en escala logarítmica: por cada fuente con tabla semanal, las filas que llegaron (gris: de ~10 mil en sequía a 1,732,444 en salud) contra las 313 semanas de la tabla procesada (azul)" style="width:1400px; height:600px; object-fit:contain">
+</div>
+
+</section>
+<section id="hallazgo">
+<p class="eyebrow eyebrow-alerta">HALLAZGO</p>
+<h2 class="title">17 de 103 unidades médicas traían coordenadas erróneas del catálogo</h2>
+<div class="hallazgo-cuerpo">
+<svg class="waffle" width="650" height="394" viewBox="0 0 650 394" aria-label="Cuadrícula de 103 unidades médicas: 86 válidas en azul, 13 ubicadas en la Ciudad de México en naranja y 4 sin coordenadas en gris">
+<g fill="none" stroke-width="44" stroke-dasharray="44 6">
+<line x1="0" y1="22" x2="650" y2="22" stroke="#2A78D6"/>
+<line x1="0" y1="72" x2="650" y2="72" stroke="#2A78D6"/>
+<line x1="0" y1="122" x2="650" y2="122" stroke="#2A78D6"/>
+<line x1="0" y1="172" x2="650" y2="172" stroke="#2A78D6"/>
+<line x1="0" y1="222" x2="650" y2="222" stroke="#2A78D6"/>
+<line x1="0" y1="272" x2="650" y2="272" stroke="#2A78D6"/>
+<line x1="0" y1="322" x2="400" y2="322" stroke="#2A78D6"/>
+<line x1="400" y1="322" x2="650" y2="322" stroke="#D9772B"/>
+<line x1="0" y1="372" x2="400" y2="372" stroke="#D9772B"/>
+<line x1="400" y1="372" x2="600" y2="372" stroke="#A3ACB9"/>
+</g>
+</svg>
+<div class="cifras">
+<div class="cifra"><div class="cuadro"></div><p class="n">86</p><p class="d">unidades válidas</p></div>
+<div class="cifra"><div class="cuadro cuadro-rechazo"></div><p class="n">13</p><p class="d d-alerta">ubicadas en la Ciudad de México, aunque el catálogo dice Hermosillo</p></div>
+<div class="cifra"><div class="cuadro cuadro-gris"></div><p class="n">4</p><p class="d">sin coordenadas en el catálogo</p></div>
+</div>
+</div>
+<p class="pie">Son consultorios de farmacias: sin la validación, habrían entrado al mapa sin notarlo.</p>
+<p class="pie">¿Por qué están mal? El error viene del catálogo maestro DGIS: las 16 Farmacias Similares fueron modificadas en lote el 07/07/2016 («actualización localidad y jurisdicción») y quedaron con las coordenadas del domicilio corporativo de la cadena en CDMX, aunque su domicilio declarado sí es de Hermosillo; a 4 nunca se les capturó la coordenada. Todas siguen en operación y suman ~35 mil casos de IRA. Es un problema nacional de la cadena: ~29 % de sus 4,292 unidades en el catálogo carecen de coordenadas.</p>
+<p class="pie"><b>Epílogo:</b> las 17 se resolvieron a mano por su domicilio declarado: 15 urbanas entraron al análisis de marginación con punto en su colonia (13 por colonia CONAPO, 2 con ubicación verificada en mapa) y 2 resultaron ser sucursales de los poblados Miguel Alemán y Bahía de Kino, fuera del área urbana a propósito. Ver <code>references/salud/nota_calidad_clues_coordenadas.md</code>.</p>
+
+</section>
+<section id="cierre" class="final">
+<p class="eyebrow">CONCLUSIÓN</p>
+<h2 class="title">Listos para procesar</h2>
+<div class="tarjetas">
+<div class="tarjeta"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg><p class="big">6 de 7</p><h3>Datos válidos</h3><p class="txt">fuentes pasan su esquema pydantic al 100 %</p></div>
+<div class="tarjeta"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg><p class="big">313/313</p><h3>Datos completos</h3><p class="txt">semanas epidemiológicas de 2015–2020 en cada tabla procesada</p></div>
+<div class="tarjeta tarjeta-alerta"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3L2 21h20L12 3z"/><path d="M12 10v5"/><path d="M12 18h.01"/></svg><p class="big">17</p><h3>Problema ubicado</h3><p class="txt">unidades del catálogo CLUES sin coordenadas útiles</p></div>
+</div>
+
+</section>
+
+</div>
+<div class="deck-v2">
+
+
+<section class="slide cover">
+  <div class="kicker">Ingeniería de Características — Proyecto EDA</div>
+  <h1>El impacto de las condiciones ambientales<br>en la salud respiratoria de los hermosillenses</h1>
+  <p class="sub">Calor, frío, sequía, calidad del aire y marginación &middot; Análisis exploratorio semanal 2015–2020</p>
+  <p class="equipo" style="margin-top: 60px;">Ana Patricia Quiroz Reyes &middot; Luis Hiram Hernández
+  Gutiérrez &middot; Víctor Andree De La Torre Velázquez</p>
+  <div class="foot">github.com/mdc-feature-engineering/sonora-health-climate-eda</div>
+</section>
+
+<!-- Slide 2: ¿Por qué estudiar esto? -->
+<section class="slide">
+  <div class="kicker">Contexto</div>
+  <h2>¿Por qué estudiar esto?</h2>
+
+  <p class="big">Hermosillo vive extremos: veranos de más de 40&nbsp;°C, sequías largas,
+  polvo en el aire y frentes fríos en invierno.</p>
+  <p class="big">Cada semana se reportan miles de casos de <b>infecciones respiratorias agudas
+  (IRA)</b>: gripe, faringitis, bronquitis.</p>
+  <p class="big">Nuestra intuición era: <b>el calor y el aire sucio enferman a la gente</b>,
+  y las colonias más pobres deberían sufrir más.</p>
+  <div class="qcards">
+    <div class="qcard"><span class="qn">PREGUNTA 1</span><br>¿El calor, el frío, la sequía y la
+    calidad del aire influyen en los casos de IRA?</div>
+    <div class="qcard"><span class="qn">PREGUNTA 2</span><br>¿Las colonias más marginadas son
+    las más afectadas?</div>
+  </div>
+  
+  
+  <div class="pagen">2 / 12</div>
+</section>
+
+<!-- Slide 3: Seis fuentes públicas, 2015–2020 -->
+<section class="slide">
+  <div class="kicker">Los datos</div>
+  <h2>Seis fuentes públicas, 2015–2020</h2>
+
+  <table style="margin-top: 10px;">
+    <tr><th>¿Qué medimos?</th><th>¿Quién lo publica?</th><th>¿Cada cuánto?</th></tr>
+    <tr><td>Casos de IRA</td><td>Secretaría de Salud / DGIS (SUIVE)</td><td>Semanal, por clínica</td></tr>
+    <tr><td>Clínicas y su ubicación (CLUES)</td><td>Secretaría de Salud / DGIS</td><td>Catálogo</td></tr>
+    <tr><td>Temperatura y humedad</td><td>SMN-CONAGUA y Open-Meteo</td><td>Diario / mensual</td></tr>
+    <tr><td>Sequía</td><td>Monitor de Sequía, CONAGUA</td><td>Quincenal</td></tr>
+    <tr><td>Calidad del aire (PM10, PM2.5, ozono)</td><td>RUOA-UNAM, estación ERNO</td><td>Cada hora</td></tr>
+    <tr><td>Marginación</td><td>CONAPO / INEGI</td><td>Censos 2015 y 2020</td></tr>
+  </table>
+  <div class="quote">Cada fuente viene en un formato y un ritmo distinto. El primer reto fue
+  <b>ponerlas a hablar el mismo idioma</b>.</div>
+  <div class="foot">Fuentes descritas en references/fuentes.md</div>
+  <div class="foot">Fuentes descritas en references/fuentes.md</div>
+  <div class="pagen">3 / 12</div>
+</section>
+
+<!-- Slide 4: Del dato crudo al panel semanal -->
+<section class="slide">
+  <div class="kicker">Cómo lo construimos</div>
+  <h2>Del dato crudo al panel semanal</h2>
+  <div class="flow">
+    <div class="fbox"><span class="pill">1</span><b class="t">Fuentes</b>Las 7 fuentes públicas: clima, sequía, aire, marginación, casos de IRA y clínicas.</div>
+    <div class="farrow">&rarr;</div>
+    <div class="fbox"><span class="pill">2</span><b class="t">Ingesta</b>Descargamos cada fuente y revisamos cada fila antes de usarla.</div>
+    <div class="farrow">&rarr;</div>
+    <div class="fbox"><span class="pill">3</span><b class="t">Procesamiento</b>Limpiamos, nos quedamos con Hermosillo y pasamos todo a semanas.</div>
+    <div class="farrow">&rarr;</div>
+    <div class="fbox final"><span class="pill">4</span><b class="t">Panel semanal</b>Una sola tabla: <b>313 semanas</b> &times; <b>62 variables</b>.</div>
+  </div>
+  <p class="big" style="margin-top: 40px;">Cada fuente llega con su propio formato y frecuencia (horas, días, quincenas, censos). Al final todas hablan el mismo idioma: <b>una fila por semana</b>.</p>
+  <div class="foot">Libretas 01_ingesta y 02_procesamiento</div>
+  <div class="pagen">4 / 12</div>
+</section>
+
+<!-- Slide 5: ¿Por qué por semana? -->
+<section class="slide">
+  <div class="kicker">La unidad de análisis</div>
+  <h2>¿Por qué por semana?</h2>
+
+  <div class="kpis" style="margin-top: 6px;">
+    <div class="kpi"><div class="n">313</div><div class="t">semanas analizadas</div></div>
+    <div class="kpi"><div class="n">62</div><div class="t">variables por semana</div></div>
+    <div class="kpi"><div class="n">6</div><div class="t">fuentes integradas</div></div>
+    <div class="kpi"><div class="n">6</div><div class="t">años (2015–2020)</div></div>
+  </div>
+  <div class="steps" style="margin-top: 34px;">
+    <div class="step"><b class="t">Así llegan los casos</b>Salud reporta por semana epidemiológica; no perdemos detalle.</div>
+    <div class="step"><b class="t">Se ven los retrasos</b>Si el frío enferma semanas después, por mes no se notaría.</div>
+    <div class="step"><b class="t">Se ven eventos cortos</b>Olas de calor, frentes fríos y días de polvo duran días, no meses.</div>
+  </div>
+  <p class="muted" style="margin-top: 22px;">También armamos un panel mensual (72 meses) como apoyo.</p>
+  <div class="foot">Panel semanal: panel_eda_semanal.parquet</div>
+  <div class="foot">Panel semanal: panel_eda_semanal.parquet</div>
+  <div class="pagen">5 / 12</div>
+</section>
+
+<!-- Slide 6: Revisamos la calidad de los datos -->
+<section class="slide">
+  <div class="kicker">Antes de analizar</div>
+  <h2>Revisamos la calidad de los datos</h2>
+
+  <div class="cols">
+    <div class="col" style="flex: 0.8">
+      <p class="big"><b>Datos faltantes:</b> solo en la calidad del aire. La estación dejó de medir
+      a mediados de 2018 y el PM2.5 casi no tiene datos válidos, así que lo dejamos fuera.</p>
+      <p class="big"><b>Semanas raras:</b> con cuatro métodos encontramos 7 semanas extremas.
+      Casi todas son eventos reales (polvo en 2017, sequía en 2018, pandemia en 2020).</p>
+      <div class="alert">No borramos ningún dato: las semanas raras cuentan la historia, no son errores.</div>
+    </div>
+    <div class="col fig" style="flex: 1.2">
+      <img src="figures/outliers_calendario_semanal.png" alt="Semanas atípicas en el tiempo" style="max-height: 260px; margin-top: 40px;">
+      <p class="figcap">Las semanas atípicas se agrupan en eventos reales y, sobre todo, en 2020.</p>
+    </div>
+  </div>
+  <div class="foot">Métodos: IQR, Z-score, Isolation Forest y LOF</div>
+  <div class="foot">Métodos: IQR, Z-score, Isolation Forest y LOF</div>
+  <div class="pagen">6 / 12</div>
+</section>
+
+<!-- Slide 7: Los casos tienen temporada -->
+<section class="slide">
+  <div class="kicker">Hallazgo</div>
+  <h2>Los casos tienen temporada</h2>
+  <div class="cols">
+    <div class="col" style="flex: 0.7">
+      <p class="big">Todos los años, los casos casi se <b>triplican en invierno</b>:
+      de ~1,900 a ~6,200 por semana.</p>
+      <p class="big">Con solo saber el <b>mes</b> se explica el
+      <span class="num">79&nbsp;%</span> de los cambios en los casos.</p>
+      <p class="big">El clima y el aire también tienen su temporada, pero cada uno en un mes distinto.</p>
+    </div>
+    <div class="col fig" style="flex: 1.4">
+      <img src="figures/rel_calendario_semanal.png" alt="Calendario de cada variable por mes" style="max-height: 400px; margin-top: 20px;">
+      <p class="figcap">Casos en enero, temperatura en junio, ozono en abril, PM10 en noviembre.</p>
+    </div>
+  </div>
+  <div class="pagen">7 / 12</div>
+</section>
+
+<!-- Slide 8: La trampa del calendario -->
+<section class="slide">
+  <div class="kicker">Por qué engaña</div>
+  <h2>La trampa del calendario</h2>
+  <div class="quote" style="margin-top: 0;">En verano se vende más helado y hay más quemaduras de sol.
+  ¿El helado quema? No: los dos dependen del <b>verano</b>. Con el clima y los casos pasa igual.</div>
+  <div class="fig" style="margin-top: 10px;">
+    <img src="figures/rel_perfiles_semanal.png" alt="Perfil anual de casos vs cada variable" style="max-height: 340px;">
+    <p class="figcap">Casos (azul) contra cada variable (naranja): cada una sube en su propio mes.</p>
+  </div>
+  <div class="pagen">8 / 12</div>
+</section>
+
+<!-- Slide 9: Comparando enero con enero, la relación desaparece -->
+<section class="slide">
+  <div class="kicker">Resultado</div>
+  <h2>Comparando enero con enero, la relación desaparece</h2>
+
+  <p class="big">A cada semana le restamos lo <b>normal para su mes</b> y medimos la relación con la
+  <b>correlación de Spearman</b> (de −1 a +1; cerca de 0 es “sin relación”).</p>
+  <table style="margin-top: 18px; font-size: 19px;">
+    <tr><th>Variable</th><th>Tal cual</th><th>Comparando con lo normal del mes</th><th>¿Qué quiere decir?</th></tr>
+    <tr><td>Temperatura</td><td>−0.78</td><td>−0.02</td><td>Era solo el calendario</td></tr>
+    <tr><td>Polvo (PM10)</td><td>+0.49</td><td>+0.12</td><td>Era solo el calendario</td></tr>
+    <tr><td>Ozono</td><td>+0.21</td><td>+0.12 sin 2016</td><td>Débil, depende de datos dudosos</td></tr>
+    <tr><td>Frío fuera de lo normal, 5 semanas antes</td><td>—</td><td>−0.15</td><td><b>La única que sobrevive</b></td></tr>
+  </table>
+  <div class="quote" style="margin-top: 30px;">Ninguna señal apunta al <b>calor extremo</b>: la idea inicial no se confirma.</div>
+  <div class="foot">Anomalía: valor de la semana menos el promedio de su mes</div>
+  <div class="pagen">9 / 12</div>
+</section>
+
+<!-- Slide 10: ¿Las colonias marginadas enferman más? -->
+<section class="slide">
+  <div class="kicker">Pregunta 2: vulnerabilidad</div>
+  <h2>¿Las colonias marginadas enferman más?</h2>
+
+  <div class="cols">
+    <div class="col">
+      <p class="big">De <b>103 clínicas</b>, las 17 con coords erróneas del
+      catálogo se corrigieron a mano y <b>91</b> caen dentro de una colonia:
+      tenemos el 94 % de los casos para
+      <b>63 de 657 colonias</b>.</p>
+      <p class="big">Ordenamos las colonias por marginación y por casos, y comparamos los dos órdenes.
+      <b>No coinciden:</b> ρ = 0.19, prácticamente cero y no significativa (p = 0.14).</p>
+      <p class="big">Además, todos los grupos tienen la <b>misma temporada</b> (×2.9 y ×3.0 en invierno)
+      y <b>ninguno reacciona peor al frío</b>.</p>
+    </div>
+    <div class="col fig" style="flex: 0.95">
+      <img src="figures/marginacion_vs_tasa_ira.png" alt="Marginación vs casos por colonia" style="max-height: 480px;">
+    </div>
+  </div>
+  <div class="foot">Casos asignados por ubicación de la clínica, no por domicilio del paciente</div>
+  <div class="pagen">10 / 12</div>
+</section>
+
+<!-- Slide 11: La red de salud no llega a todos -->
+<section class="slide">
+  <div class="kicker">El hallazgo clave</div>
+  <h2>La red de salud no llega a todos</h2>
+
+  <div class="cols">
+    <div class="col">
+      <p class="big">Las <b>12 colonias más marginadas</b> de Hermosillo <b>no tienen ninguna clínica
+      que reporte casos</b>.</p>
+      <p class="big">No es que ahí no haya enfermos: es que <b>no los vemos</b> en los datos.</p>
+      <div class="alert">Donde más haría falta observar, no hay observatorio. Esa falta de acceso
+      ya es, en sí misma, una forma de vulnerabilidad.</div>
+    </div>
+    <div class="col fig" style="flex: 1.1">
+      <img src="figures/mapa_marginacion_colonias.png" alt="Mapa de marginación y clínicas" style="max-height: 480px;">
+      <p class="figcap">Marginación por colonia (CONAPO 2020) y clínicas (puntos).</p>
+    </div>
+  </div>
+  
+  
+  <div class="pagen">11 / 12</div>
+</section>
+
+<!-- Slide 12: Lo que aprendimos y lo que sigue -->
+<section class="slide">
+  <div class="kicker">Conclusión</div>
+  <h2>Lo que aprendimos y lo que sigue</h2>
+
+  <div class="qcards" style="margin-top: 10px;">
+    <div class="qcard"><span class="qn">PREGUNTA 1</span><br>El <b>calendario</b> explica casi todo; solo el
+    <b>frío fuera de lo normal</b> deja una señal débil semanas después. La planeación debe enfocarse en el <b>invierno</b>.</div>
+    <div class="qcard"><span class="qn">PREGUNTA 2</span><br>En las colonias que vemos, la marginación <b>no cambia</b>
+    el riesgo. Pero las 12 más marginadas <b>no tienen clínica</b> que reporte.</div>
+  </div>
+  <div class="steps" style="margin-top: 10px;">
+    <div class="step"><span class="pill">1</span><b class="t">Modelo con el frío</b>Usar el frío de 3 a 5 semanas antes.</div>
+    <div class="step"><span class="pill">2</span><b class="t">Un solo índice</b>Temperatura, humedad y PM10 juntas.</div>
+    <div class="step"><span class="pill">3</span><b class="t">Tablero de invierno</b>Pronóstico estacional para las clínicas.</div>
+    <div class="step"><span class="pill">4</span><b class="t">Domicilio del paciente</b>Para responder la pregunta 2.</div>
+  </div>
+  <p class="big" style="margin-top: 22px; text-align: center;"><b>Gracias.</b></p>
+  <div class="fuentes"><span class="fuentes-label">FUENTES</span>
+    Casos de IRA: Secretaría de Salud / DGIS, SINAIS (SUIVE) 2010–2020 &middot;
+    Temperatura: SMN-CONAGUA y Open-Meteo &middot; Sequía: Monitor de Sequía, CONAGUA &middot;
+    Aire: RUOA-UNAM, estación ERNO &middot; Marginación: CONAPO/INEGI &middot; Clínicas: catálogo CLUES, DGIS</div>
+  
+</section>
+
+
+</div>
+</body>
+</html>
